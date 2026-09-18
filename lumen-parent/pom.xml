@@ -43,6 +43,7 @@
         <module>lumen-common/lumen-common-security</module>
         <module>lumen-common/lumen-common-web</module>
         <module>lumen-common/lumen-common-mybatis</module>
+        <module>lumen-common/lumen-common-crypto</module>
         <module>lumen-common/lumen-common-log</module>
         <module>lumen-common/lumen-common-sso</module>
         <module>lumen-gateway</module>
@@ -91,6 +92,11 @@
             <dependency>
                 <groupId>com.lumen</groupId>
                 <artifactId>lumen-common-mybatis</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lumen</groupId>
+                <artifactId>lumen-common-crypto</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

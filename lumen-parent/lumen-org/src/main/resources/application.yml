@@ -44,3 +44,11 @@ logging:
     com.lumen: INFO
     org.springframework.cloud: WARN
     com.alibaba.cloud: WARN
+
+# AES-256-GCM field encryption key.
+# Override LUMEN_CRYPTO_KEY in production deployments. The value below is a
+# Base64-encoded 32-byte dev key included for local convenience only.
+lumen:
+  security:
+    crypto:
+      key: ${LUMEN_CRYPTO_KEY:dGVzdC1rZXktMzItYnl0ZXMtZm9yLWRlbHRhMTIzNDU2}
