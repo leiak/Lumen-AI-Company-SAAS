@@ -1,6 +1,8 @@
 package com.lumen.platform.controller;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.lumen.common.core.domain.R;
+import com.lumen.common.sentinel.handler.LumenBlockHandler;
 import com.lumen.platform.entity.Tenant;
 import com.lumen.platform.service.TenantService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,13 @@ public class TenantController {
 
     private final TenantService tenantService;
 
+    /**
+     * Tenant list endpoint — guarded by Sentinel QPS limit
+     * (see {@code lumen-platform/src/main/resources/sentinel/rules.json}).
+     * The {@code blockHandler} writes a uniform 429 JSON via
+     * {@link LumenBlockHandler#lumenBlock(com.alibaba.csp.sentinel.slots.block.BlockException)}.
+     */
+    @SentinelResource(value = "tenantList", blockHandler = "lumenBlock", blockHandlerClass = LumenBlockHandler.class)
     @GetMapping("/list")
     public R<?> list(@RequestParam(defaultValue = "1") int pageNum,
                      @RequestParam(defaultValue = "10") int pageSize,

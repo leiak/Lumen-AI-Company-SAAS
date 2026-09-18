@@ -44,6 +44,11 @@
             <groupId>com.lumen</groupId>
             <artifactId>lumen-common-log</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.lumen</groupId>
+            <artifactId>lumen-common-sentinel</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- MyBatis-Plus -->
         <dependency>

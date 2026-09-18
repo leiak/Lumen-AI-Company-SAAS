@@ -32,6 +32,7 @@
         <flyway.version>9.22.3</flyway.version>
         <jjwt.version>0.12.5</jjwt.version>
         <hutool.version>5.8.27</hutool.version>
+        <sentinel.version>1.8.9</sentinel.version>
         <lombok.version>1.18.30</lombok.version>
         <skywalking.version>9.5.0</skywalking.version>
         <testcontainers.version>1.19.7</testcontainers.version>
@@ -46,6 +47,7 @@
         <module>lumen-common/lumen-common-crypto</module>
         <module>lumen-common/lumen-common-log</module>
         <module>lumen-common/lumen-common-sso</module>
+        <module>lumen-common/lumen-common-sentinel</module>
         <module>lumen-gateway</module>
         <module>lumen-auth</module>
         <module>lumen-system</module>
@@ -108,6 +110,26 @@
                 <groupId>com.lumen</groupId>
                 <artifactId>lumen-common-sso</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lumen</groupId>
+                <artifactId>lumen-common-sentinel</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-core</artifactId>
+                <version>${sentinel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-annotation-aspectj</artifactId>
+                <version>${sentinel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-spring-webmvc-v6x-adapter</artifactId>
+                <version>${sentinel.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.baomidou</groupId>
