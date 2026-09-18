@@ -5,9 +5,36 @@
         <groupId>com.lumen</groupId>
         <artifactId>lumen-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
+        <relativePath/>
     </parent>
     <artifactId>lumen-common-mybatis</artifactId>
     <name>lumen-common-mybatis</name>
-    <description>STUB — to be implemented</description>
-    <packaging>jar</packaging>
+    <description>MyBatis 通用模块</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.lumen</groupId>
+            <artifactId>lumen-common-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lumen</groupId>
+            <artifactId>lumen-common-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-3-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+        </dependency>
+    </dependencies>
 </project>
