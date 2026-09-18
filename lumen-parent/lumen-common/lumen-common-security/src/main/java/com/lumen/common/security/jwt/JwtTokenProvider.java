@@ -26,7 +26,18 @@ public class JwtTokenProvider {
     @Autowired
     public JwtTokenProvider(JwtProperties props) {
         this.props = props;
-        this.signingKey = Keys.hmacShaKeyFor(props.getSecret().getBytes(StandardCharsets.UTF_8));
+        byte[] keyBytes = props.getSecret().getBytes(StandardCharsets.UTF_8);
+        if (keyBytes.length < 32) {
+            throw new IllegalStateException(
+                "lumen.security.jwt.secret must be at least 32 bytes for HS256, got "
+                    + keyBytes.length + " bytes");
+        }
+        if (props.getSecret().startsWith("lumen-default-")) {
+            throw new IllegalStateException(
+                "lumen.security.jwt.secret is using the default value. "
+                    + "Set a unique secret in production via application.yml or Nacos.");
+        }
+        this.signingKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String generateAccessToken(UserContext ctx) {
@@ -66,17 +77,22 @@ public class JwtTokenProvider {
         try {
             return Jwts.parser()
                 .verifyWith(signingKey)
+                .requireIssuer(props.getIssuer())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
         } catch (JwtException e) {
-            log.debug("JWT 解析失败: {}", e.getMessage());
+            log.warn("JWT 解析失败 [{}]: {}", e.getClass().getSimpleName(), e.getMessage());
             throw e;
         }
     }
 
     public UserContext extractUserContext(String token) {
         Claims c = parseToken(token);
+        String type = c.get("type", String.class);
+        if (!"access".equals(type)) {
+            throw new io.jsonwebtoken.JwtException("Token type is not 'access': " + type);
+        }
         UserContext ctx = new UserContext();
         ctx.setUserId(c.get("uid", Long.class));
         ctx.setTenantId(c.get("tid", Long.class));
