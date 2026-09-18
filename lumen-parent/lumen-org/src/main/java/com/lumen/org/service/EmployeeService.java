@@ -88,13 +88,17 @@ public class EmployeeService {
         existing.setGender(employee.getGender());
         existing.setMobileEnc(employee.getMobileEnc());
         existing.setEmailEnc(employee.getEmailEnc());
+        if (employee.getIdCardEnc() != null) existing.setIdCardEnc(employee.getIdCardEnc());
         existing.setDeptId(employee.getDeptId());
         existing.setPostId(employee.getPostId());
         existing.setDirectLeaderId(employee.getDirectLeaderId());
         existing.setEmployeeType(employee.getEmployeeType());
         existing.setEmploymentStatus(employee.getEmploymentStatus());
+        existing.setBirthDate(employee.getBirthDate());
+        existing.setHireDate(employee.getHireDate());
         existing.setLeaveDate(employee.getLeaveDate());
-        existing.setRemark(employee.getRemark());
+        if (employee.getEmployeeNo() != null) existing.setEmployeeNo(employee.getEmployeeNo());
+        if (employee.getRemark() != null) existing.setRemark(employee.getRemark());
         employeeMapper.updateById(existing);
         return existing;
     }

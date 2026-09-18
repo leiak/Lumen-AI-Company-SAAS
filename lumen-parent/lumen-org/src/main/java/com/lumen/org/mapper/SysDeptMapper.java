@@ -12,7 +12,6 @@ public interface SysDeptMapper extends BaseMapper<SysDept> {
     default List<SysDept> listAllActive() {
         return selectList(new LambdaQueryWrapper<SysDept>()
             .eq(SysDept::getStatus, "0")
-            .orderByAsc(SysDept::getOrderNum)
-            .orderByAsc(SysDept::getDeptId));
+            .orderByAsc(SysDept::getAncestors, SysDept::getOrderNum));
     }
 }

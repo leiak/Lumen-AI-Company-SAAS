@@ -79,28 +79,56 @@ public class DeptService {
     @Transactional
     public SysDept update(SysDept dept) {
         SysDept existing = getById(dept.getDeptId());
-        // If parent changed, recompute ancestors and update descendants
+        if (existing.getIsBuiltin() != null && existing.getIsBuiltin() == 1) {
+            throw new ServiceException(403, "Cannot modify builtin dept");
+        }
         boolean parentChanged = !java.util.Objects.equals(existing.getParentId(), dept.getParentId());
+
+        // Capture old ancestors BEFORE overwrite
+        String oldAncestors = existing.getAncestors();
+        String oldPrefix = oldAncestors + "," + existing.getDeptId();
+
+        // Compute new ancestors if parent changed
+        if (parentChanged && dept.getParentId() != null) {
+            if (dept.getParentId() == 0L) {
+                existing.setAncestors("0");
+            } else {
+                SysDept parent = getById(dept.getParentId());
+                // Prevent moving under self or own descendant
+                if (parent.getAncestors() != null && parent.getAncestors().contains("," + existing.getDeptId())) {
+                    throw new ServiceException(400, "Cannot move dept under its own descendant");
+                }
+                existing.setAncestors(parent.getAncestors() + "," + parent.getDeptId());
+            }
+            existing.setParentId(dept.getParentId());
+        }
+
+        String newAncestors = existing.getAncestors();
+        String newPrefix = newAncestors + "," + existing.getDeptId();
+
+        // Copy mutable fields from request
         existing.setDeptName(dept.getDeptName());
         existing.setOrderNum(dept.getOrderNum());
         existing.setLeaderName(dept.getLeaderName());
         existing.setPhone(dept.getPhone());
         existing.setEmail(dept.getEmail());
         existing.setStatus(dept.getStatus());
-        if (parentChanged && dept.getParentId() != null) {
-            if (dept.getParentId() == 0L) {
-                existing.setAncestors("0");
-            } else {
-                SysDept parent = getById(dept.getParentId());
-                existing.setAncestors(parent.getAncestors() + "," + parent.getDeptId());
-            }
-            existing.setParentId(dept.getParentId());
-            // Update descendants' ancestors
-            String oldAncestorsPrefix = existing.getAncestors().substring(0, existing.getAncestors().length())
-                + "," + existing.getDeptId();
-            // Note: actual descendant update is skipped for skeleton; full impl needs recursive update
-        }
+        if (dept.getDeptCategory() != null) existing.setDeptCategory(dept.getDeptCategory());
+        if (dept.getLeader() != null) existing.setLeader(dept.getLeader());
+        if (dept.getRemark() != null) existing.setRemark(dept.getRemark());
+
         deptMapper.updateById(existing);
+
+        // If parent changed, rewrite descendants' ancestors
+        if (parentChanged && !oldPrefix.equals(newPrefix)) {
+            List<SysDept> descendants = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
+                .likeRight(SysDept::getAncestors, oldPrefix + ","));
+            for (SysDept d : descendants) {
+                String updated = newPrefix + d.getAncestors().substring(oldPrefix.length());
+                d.setAncestors(updated);
+                deptMapper.updateById(d);
+            }
+        }
         return existing;
     }
 
