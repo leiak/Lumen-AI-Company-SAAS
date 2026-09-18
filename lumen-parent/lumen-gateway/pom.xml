@@ -35,10 +35,25 @@
         <dependency>
             <groupId>com.lumen</groupId>
             <artifactId>lumen-common-web</artifactId>
+            <exclusions>
+                <!-- Gateway is WebFlux; exclude the servlet starter lumen-common-web pulls in -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.lumen</groupId>
             <artifactId>lumen-common-security</artifactId>
+            <exclusions>
+                <!-- lumen-common-security pulls spring-boot-starter-security which transitively brings spring-security-web (servlet).
+                     The gateway only needs JWT utilities; we exclude the servlet security module. -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-security</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.lumen</groupId>
@@ -49,6 +64,12 @@
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+
+        <!-- Spring Cloud LoadBalancer: required for lb:// URI resolution in Gateway -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
         </dependency>
 
         <!-- Bootstrap -->
@@ -71,7 +92,7 @@
     </dependencies>
 
     <build>
-        <finalName>${project.artifactId}</finalName>
+        <finalName>${project.artifactId}-app</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

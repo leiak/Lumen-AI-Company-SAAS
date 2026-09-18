@@ -43,12 +43,20 @@ services:
     image: nacos/nacos-server:v2.3.2
     container_name: lumen-nacos
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       MODE: standalone
       JVM_XMS: 512m
       JVM_XMX: 512m
       JVM_XMN: 256m
       SPRING_DATASOURCE_PLATFORM: mysql
+      MYSQL_SERVICE_HOST: host.docker.internal
+      MYSQL_SERVICE_PORT: "3306"
+      MYSQL_SERVICE_DB_NAME: nacos
+      MYSQL_SERVICE_USER: root
+      MYSQL_SERVICE_PASSWORD: root
+      MYSQL_SERVICE_DB_PARAM: "characterEncoding=utf8&connectTimeout=10000&socketTimeout=10000&allowPublicKeyRetrieval=true&useSSL=false"
       NACOS_AUTH_ENABLE: "true"
       NACOS_AUTH_TOKEN: SecretKey012345678901234567890123456789012345678901234567890123456789
       NACOS_AUTH_IDENTITY_KEY: lumen

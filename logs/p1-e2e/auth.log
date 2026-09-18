@@ -1,4 +1,4 @@
-2026-09-18 18:23:46.718 [background-preinit] INFO  [traceId=] o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
+2026-09-18 18:40:35.975 [background-preinit] INFO  [traceId=] o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -8,55 +8,46 @@
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::                (v3.2.5)
 
-2026-09-18 18:23:47.737 [main] INFO  [traceId=] com.lumen.auth.AuthApplication - The following 1 profile is active: "dev"
-2026-09-18 18:23:48.531 [main] INFO  [traceId=] o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
-2026-09-18 18:23:48.535 [main] INFO  [traceId=] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
-2026-09-18 18:23:48.562 [main] INFO  [traceId=] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 8 ms. Found 0 Redis repository interfaces.
-2026-09-18 18:23:50.770 [main] INFO  [traceId=] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 9202 (http)
-2026-09-18 18:23:50.788 [main] INFO  [traceId=] o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-9202"]
-2026-09-18 18:23:50.790 [main] INFO  [traceId=] o.a.catalina.core.StandardService - Starting service [Tomcat]
-2026-09-18 18:23:50.791 [main] INFO  [traceId=] o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.20]
-2026-09-18 18:23:50.872 [main] INFO  [traceId=] o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
-2026-09-18 18:23:50.876 [main] INFO  [traceId=] o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 3113 ms
-2026-09-18 18:23:51.020 [main] DEBUG [traceId=] c.l.c.s.f.UserContextCleanupFilter - Filter 'userContextCleanupFilter' configured for use
-2026-09-18 18:23:51.021 [main] DEBUG [traceId=] c.l.common.web.filter.TraceIdFilter - Filter 'traceIdFilter' configured for use
-2026-09-18 18:23:51.170 [main] INFO  [traceId=] c.a.d.s.b.a.DruidDataSourceAutoConfigure - Init DruidDataSource
-2026-09-18 18:23:52.107 [main] INFO  [traceId=] c.alibaba.druid.pool.DruidDataSource - {dataSource-1} inited
+2026-09-18 18:40:44.721 [main] INFO  [traceId=] com.lumen.auth.AuthApplication - The following 1 profile is active: "dev"
+2026-09-18 18:40:50.024 [main] INFO  [traceId=] o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+2026-09-18 18:40:50.037 [main] INFO  [traceId=] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-09-18 18:40:50.123 [main] INFO  [traceId=] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 22 ms. Found 0 Redis repository interfaces.
+2026-09-18 18:40:57.523 [main] INFO  [traceId=] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 9202 (http)
+2026-09-18 18:40:57.538 [main] INFO  [traceId=] o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-9202"]
+2026-09-18 18:40:57.540 [main] INFO  [traceId=] o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-09-18 18:40:57.543 [main] INFO  [traceId=] o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-09-18 18:40:57.662 [main] INFO  [traceId=] o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2026-09-18 18:40:57.666 [main] INFO  [traceId=] o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 12658 ms
+2026-09-18 18:40:58.518 [main] INFO  [traceId=] c.a.d.s.b.a.DruidDataSourceAutoConfigure - Init DruidDataSource
+2026-09-18 18:41:05.076 [main] INFO  [traceId=] c.alibaba.druid.pool.DruidDataSource - {dataSource-1} inited
  _ _   |_  _ _|_. ___ _ |    _ 
 | | |\/|_)(_| | |_\  |_)||_|_\ 
      /               |         
                         3.5.5 
-2026-09-18 18:23:53.537 [main] INFO  [traceId=] o.f.c.i.license.VersionPrinter - Flyway Community Edition 9.22.3 by Redgate
-2026-09-18 18:23:53.538 [main] INFO  [traceId=] o.f.c.i.license.VersionPrinter - See release notes here: https://rd.gt/416ObMi
-2026-09-18 18:23:53.538 [main] INFO  [traceId=] o.f.c.i.license.VersionPrinter - 
-2026-09-18 18:23:53.563 [main] INFO  [traceId=] org.flywaydb.core.FlywayExecutor - Database: jdbc:mysql://localhost:3306/lumen_db (MySQL 8.0)
-2026-09-18 18:23:53.610 [main] INFO  [traceId=] o.f.core.internal.command.DbValidate - Successfully validated 10 migrations (execution time 00:00.018s)
-2026-09-18 18:23:53.624 [main] INFO  [traceId=] o.f.core.internal.command.DbMigrate - Current version of schema `lumen_db`: 1.3.1
-2026-09-18 18:23:53.625 [main] ERROR [traceId=] o.f.core.internal.command.DbMigrate - Schema `lumen_db` has version 1.3.1, but no migration could be resolved in the configured locations !
-2026-09-18 18:23:53.628 [main] INFO  [traceId=] o.f.core.internal.command.DbMigrate - Schema `lumen_db` is up to date. No migration necessary.
-2026-09-18 18:23:58.505 [main] INFO  [traceId=] o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-9202"]
-2026-09-18 18:23:58.547 [main] INFO  [traceId=] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 9202 (http) with context path ''
-2026-09-18 18:24:01.292 [main] INFO  [traceId=] com.lumen.auth.AuthApplication - Started AuthApplication in 15.447 seconds (process running for 15.979)
-2026-09-18 18:24:07.797 [http-nio-9202-exec-1] INFO  [traceId=] o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-09-18 18:24:07.798 [http-nio-9202-exec-1] INFO  [traceId=] o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
-2026-09-18 18:24:07.800 [http-nio-9202-exec-1] INFO  [traceId=] o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
-2026-09-18 18:24:08.324 [http-nio-9202-exec-1] DEBUG [traceId=a4423d1173e94179a73f4b34dbb4741a] c.l.a.m.SysUserMapper.selectList - ==>  Preparing: SELECT user_id, tenant_id, dept_id, user_name, nick_name, email, phonenumber, sex, avatar, password, status, data_scope, mfa_secret, mfa_enabled, pwd_expire_at, pwd_history, id_card_enc, mobile_enc, email_enc, bank_card_enc, last_pwd_change, fail_count, lock_until, login_ip, login_date, remark, create_by, create_time, update_by, update_time, deleted FROM sys_user WHERE deleted = 0 AND (tenant_id = ? AND user_name = ? AND deleted = ?) AND tenant_id = 0 LIMIT 1
-2026-09-18 18:24:08.352 [http-nio-9202-exec-1] DEBUG [traceId=a4423d1173e94179a73f4b34dbb4741a] c.l.a.m.SysUserMapper.selectList - ==> Parameters: 1(Long), admin(String), 0(Integer)
-2026-09-18 18:24:08.371 [http-nio-9202-exec-1] DEBUG [traceId=a4423d1173e94179a73f4b34dbb4741a] c.l.a.m.SysUserMapper.selectList - <==      Total: 0
-2026-09-18 18:24:08.391 [http-nio-9202-exec-1] DEBUG [traceId=a4423d1173e94179a73f4b34dbb4741a] c.l.a.m.SysLoginFailMapper.insert - ==>  Preparing: INSERT INTO sys_login_fail (user_name, tenant_id, ip, user_agent, fail_reason) VALUES (?, ?, ?, ?, ?)
-2026-09-18 18:24:08.392 [http-nio-9202-exec-1] DEBUG [traceId=a4423d1173e94179a73f4b34dbb4741a] c.l.a.m.SysLoginFailMapper.insert - ==> Parameters: admin(String), 1(Long), 127.0.0.1(String), curl/7.81.0(String), user_not_found(String)
-2026-09-18 18:24:08.397 [http-nio-9202-exec-1] DEBUG [traceId=a4423d1173e94179a73f4b34dbb4741a] c.l.a.m.SysLoginFailMapper.insert - <==    Updates: 1
-2026-09-18 18:24:08.402 [http-nio-9202-exec-1] WARN  [traceId=a4423d1173e94179a73f4b34dbb4741a] c.l.c.w.advice.GlobalExceptionAdvice - ÒµÎñÒì³£ [/auth/login]: Invalid credentials
-2026-09-18 18:24:39.692 [http-nio-9202-exec-3] DEBUG [traceId=89f56560587a4a4ea683a493d92f668c] c.l.a.m.SysUserMapper.selectList - ==>  Preparing: SELECT user_id, tenant_id, dept_id, user_name, nick_name, email, phonenumber, sex, avatar, password, status, data_scope, mfa_secret, mfa_enabled, pwd_expire_at, pwd_history, id_card_enc, mobile_enc, email_enc, bank_card_enc, last_pwd_change, fail_count, lock_until, login_ip, login_date, remark, create_by, create_time, update_by, update_time, deleted FROM sys_user WHERE deleted = 0 AND (tenant_id = ? AND user_name = ? AND deleted = ?) AND tenant_id = 0 LIMIT 1
-2026-09-18 18:24:39.692 [http-nio-9202-exec-3] DEBUG [traceId=89f56560587a4a4ea683a493d92f668c] c.l.a.m.SysUserMapper.selectList - ==> Parameters: 0(Long), admin(String), 0(Integer)
-2026-09-18 18:24:39.700 [http-nio-9202-exec-3] DEBUG [traceId=89f56560587a4a4ea683a493d92f668c] c.l.a.m.SysUserMapper.selectList - <==      Total: 1
-2026-09-18 18:24:39.785 [http-nio-9202-exec-3] DEBUG [traceId=89f56560587a4a4ea683a493d92f668c] c.l.auth.mapper.SysUserMapper.update - ==>  Preparing: UPDATE sys_user SET fail_count = ?, lock_until = ?, login_ip = ? WHERE deleted = 0 AND (user_id = ?) AND tenant_id = 0
-2026-09-18 18:24:39.788 [http-nio-9202-exec-3] DEBUG [traceId=89f56560587a4a4ea683a493d92f668c] c.l.auth.mapper.SysUserMapper.update - ==> Parameters: 0(Integer), null, null, 100(Long)
-2026-09-18 18:24:39.789 [http-nio-9202-exec-3] DEBUG [traceId=89f56560587a4a4ea683a493d92f668c] c.l.auth.mapper.SysUserMapper.update - <==    Updates: 1
-2026-09-18 18:24:39.887 [http-nio-9202-exec-3] DEBUG [traceId=89f56560587a4a4ea683a493d92f668c] c.l.a.m.SysUserSessionMapper.insert - ==>  Preparing: INSERT INTO sys_user_session (session_id, user_id, tenant_id, refresh_token, ip, user_agent, device, login_at, last_active_at, expire_at, status, update_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-2026-09-18 18:24:39.890 [http-nio-9202-exec-3] DEBUG [traceId=89f56560587a4a4ea683a493d92f668c] c.l.a.m.SysUserSessionMapper.insert - ==> Parameters: 112a9b6f-526d-4443-96af-62178cf757ad(String), 100(Long), 0(Long), eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiIxMTJhOWI2Zi01MjZkLTQ0NDMtOTZhZi02MjE3OGNmNzU3YWQiLCJzdWIiOiIxMDAiLCJpc3MiOiJsdW1lbiIsImlhdCI6MTc4OTcyNzA3OSwiZXhwIjoxNzkwOTM2Njc5LCJ1aWQiOjEwMCwibm5hbWUiOiJTeXNBZG1pbiIsInR5cGUiOiJyZWZyZXNoIiwidGlkIjowfQ.VOnWHVCh1oa2f3ARaDfyL8Njg04mS8feKwGET8MRinc(String), 127.0.0.1(String), curl/7.81.0(String), WEB(String), 2026-09-18T18:24:39.883355100(LocalDateTime), 2026-09-18T18:24:39.883355100(LocalDateTime), 2026-10-02T18:24:39.883355100(LocalDateTime), 1(Integer), 100(Long)
-2026-09-18 18:24:39.936 [http-nio-9202-exec-3] DEBUG [traceId=89f56560587a4a4ea683a493d92f668c] c.l.a.m.SysUserSessionMapper.insert - <==    Updates: 1
-2026-09-18 18:24:40.830 [http-nio-9202-exec-3] INFO  [traceId=89f56560587a4a4ea683a493d92f668c] c.lumen.auth.service.SessionService - Session created: userId=100, tenantId=0, sessionId=112a9b6f-526d-4443-96af-62178cf757ad
-2026-09-18 18:24:40.843 [task-1] DEBUG [traceId=] c.l.a.m.SysAuthAuditMapper.insert - ==>  Preparing: INSERT INTO sys_auth_audit (user_id, user_name, tenant_id, action, status, ip, user_agent, detail, audit_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-2026-09-18 18:24:40.845 [task-1] DEBUG [traceId=] c.l.a.m.SysAuthAuditMapper.insert - ==> Parameters: 100(Long), admin(String), 0(Long), LOGIN(String), 1(Integer), 127.0.0.1(String), curl/7.81.0(String), ok(String), 2026-09-18T18:24:40.831472500(LocalDateTime)
-2026-09-18 18:24:40.855 [task-1] DEBUG [traceId=] c.l.a.m.SysAuthAuditMapper.insert - <==    Updates: 1
+2026-09-18 18:41:08.553 [main] INFO  [traceId=] o.f.c.i.license.VersionPrinter - Flyway Community Edition 9.22.3 by Redgate
+2026-09-18 18:41:08.554 [main] INFO  [traceId=] o.f.c.i.license.VersionPrinter - See release notes here: https://rd.gt/416ObMi
+2026-09-18 18:41:08.554 [main] INFO  [traceId=] o.f.c.i.license.VersionPrinter - 
+2026-09-18 18:41:08.606 [main] INFO  [traceId=] org.flywaydb.core.FlywayExecutor - Database: jdbc:mysql://localhost:3306/lumen_db (MySQL 8.0)
+2026-09-18 18:41:08.713 [main] INFO  [traceId=] o.f.core.internal.command.DbValidate - Successfully validated 10 migrations (execution time 00:00.058s)
+2026-09-18 18:41:08.734 [main] INFO  [traceId=] o.f.core.internal.command.DbMigrate - Current version of schema `lumen_db`: 1.3.1
+2026-09-18 18:41:08.735 [main] ERROR [traceId=] o.f.core.internal.command.DbMigrate - Schema `lumen_db` has version 1.3.1, but no migration could be resolved in the configured locations !
+2026-09-18 18:41:08.740 [main] INFO  [traceId=] o.f.core.internal.command.DbMigrate - Schema `lumen_db` is up to date. No migration necessary.
+2026-09-18 18:41:16.043 [main] WARN  [traceId=] o.s.b.a.s.s.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: d3f3af5d-dec9-41be-9656-f6781114fe16
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-09-18 18:41:17.034 [main] INFO  [traceId=] o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@6e489bb8, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@1331d6fd, org.springframework.security.web.context.SecurityContextHolderFilter@6bf77ee, org.springframework.security.web.header.HeaderWriterFilter@1e592ef2, org.springframework.web.filter.CorsFilter@6b6c0b7c, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@372841d2, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@6c8d638a, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@5b1f0f26, org.springframework.security.web.access.ExceptionTranslationFilter@446f3a53, org.springframework.security.web.access.intercept.AuthorizationFilter@69a294d8]
+2026-09-18 18:41:21.484 [main] INFO  [traceId=] o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-9202"]
+2026-09-18 18:41:21.541 [main] INFO  [traceId=] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 9202 (http) with context path ''
+2026-09-18 18:41:24.977 [com.alibaba.nacos.client.naming.grpc.redo.0] WARN  [traceId=] com.alibaba.nacos.client.naming - Grpc Connection is disconnect, skip current redo task
+2026-09-18 18:41:25.718 [main] INFO  [traceId=] com.lumen.auth.AuthApplication - Started AuthApplication in 51.746 seconds (process running for 53.024)
+2026-09-18 18:49:29.633 [http-nio-9202-exec-1] INFO  [traceId=] o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-18 18:49:29.634 [http-nio-9202-exec-1] INFO  [traceId=] o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-09-18 18:49:29.636 [http-nio-9202-exec-1] INFO  [traceId=] o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2026-09-18 18:49:33.616 [http-nio-9202-exec-3] INFO  [traceId=0c7be2565f9d41509c48bbcc3d947c54] c.lumen.auth.service.SessionService - Session created: userId=100, tenantId=0, sessionId=6763dafc-2abe-4f6e-8c88-26a965db3e46
+2026-09-18 18:49:53.834 [http-nio-9202-exec-5] INFO  [traceId=b31654ddd8804cf3bdd614b99484a1f1] c.lumen.auth.service.SessionService - Session created: userId=100, tenantId=0, sessionId=0b8723c0-1b51-4a1a-94e5-64a3b20c2ad1
+2026-09-18 18:51:06.905 [http-nio-9202-exec-9] INFO  [traceId=a6e68d54a52340fcb5fd1f2c318f41f2] c.lumen.auth.service.SessionService - Session created: userId=100, tenantId=0, sessionId=dabb827a-dab1-4285-9604-dfd9bd0f04cb
+2026-09-18 18:51:22.894 [http-nio-9202-exec-3] INFO  [traceId=38c582d747a94439b08e5b36c82baf32] c.lumen.auth.service.SessionService - Session created: userId=100, tenantId=0, sessionId=307cb630-496b-468a-a08c-c47b1af4c6e0
+2026-09-18 18:53:24.378 [http-nio-9202-exec-9] INFO  [traceId=fdb8177e5cf04b2b9c07f7686441a76a] c.lumen.auth.service.SessionService - Session created: userId=100, tenantId=0, sessionId=ecbc9ccc-2afd-469b-9d95-87e9981fd27e

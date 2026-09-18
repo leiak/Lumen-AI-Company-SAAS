@@ -1,4 +1,4 @@
-2026-09-18 18:09:44.940 [background-preinit] INFO  [traceId=] o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
+2026-09-18 18:40:37.946 [background-preinit] INFO  [traceId=] o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -8,31 +8,39 @@
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::                (v3.2.5)
 
-2026-09-18 18:09:49.312 [main] INFO  [traceId=] c.lumen.platform.PlatformApplication - The following 1 profile is active: "dev"
-2026-09-18 18:09:52.677 [main] INFO  [traceId=] o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
-2026-09-18 18:09:52.686 [main] INFO  [traceId=] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
-2026-09-18 18:09:52.750 [main] INFO  [traceId=] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 25 ms. Found 0 Redis repository interfaces.
-2026-09-18 18:09:58.013 [main] INFO  [traceId=] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 9201 (http)
-2026-09-18 18:09:58.061 [main] INFO  [traceId=] o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-9201"]
-2026-09-18 18:09:58.063 [main] INFO  [traceId=] o.a.catalina.core.StandardService - Starting service [Tomcat]
-2026-09-18 18:09:58.063 [main] INFO  [traceId=] o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.20]
-2026-09-18 18:09:58.232 [main] INFO  [traceId=] o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
-2026-09-18 18:09:58.232 [main] INFO  [traceId=] o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 8791 ms
-2026-09-18 18:09:59.175 [main] INFO  [traceId=] c.a.d.s.b.a.DruidDataSourceAutoConfigure - Init DruidDataSource
-2026-09-18 18:10:05.486 [main] INFO  [traceId=] c.alibaba.druid.pool.DruidDataSource - {dataSource-1} inited
+2026-09-18 18:40:45.207 [main] INFO  [traceId=] c.lumen.platform.PlatformApplication - The following 1 profile is active: "dev"
+2026-09-18 18:40:48.977 [main] INFO  [traceId=] o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+2026-09-18 18:40:48.982 [main] INFO  [traceId=] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-09-18 18:40:49.043 [main] INFO  [traceId=] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 17 ms. Found 0 Redis repository interfaces.
+2026-09-18 18:40:54.239 [main] INFO  [traceId=] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 9201 (http)
+2026-09-18 18:40:54.287 [main] INFO  [traceId=] o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-9201"]
+2026-09-18 18:40:54.293 [main] INFO  [traceId=] o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-09-18 18:40:54.307 [main] INFO  [traceId=] o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-09-18 18:40:54.569 [main] INFO  [traceId=] o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2026-09-18 18:40:54.570 [main] INFO  [traceId=] o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 9247 ms
+2026-09-18 18:41:00.018 [main] INFO  [traceId=] c.a.d.s.b.a.DruidDataSourceAutoConfigure - Init DruidDataSource
+2026-09-18 18:41:01.745 [main] INFO  [traceId=] c.alibaba.druid.pool.DruidDataSource - {dataSource-1} inited
  _ _   |_  _ _|_. ___ _ |    _ 
 | | |\/|_)(_| | |_\  |_)||_|_\ 
      /               |         
                         3.5.5 
-2026-09-18 18:10:07.272 [main] INFO  [traceId=] o.f.c.i.license.VersionPrinter - Flyway Community Edition 9.22.3 by Redgate
-2026-09-18 18:10:07.273 [main] INFO  [traceId=] o.f.c.i.license.VersionPrinter - See release notes here: https://rd.gt/416ObMi
-2026-09-18 18:10:07.273 [main] INFO  [traceId=] o.f.c.i.license.VersionPrinter - 
-2026-09-18 18:10:07.322 [main] INFO  [traceId=] org.flywaydb.core.FlywayExecutor - Database: jdbc:mysql://localhost:3306/lumen_db (MySQL 8.0)
-2026-09-18 18:10:07.484 [main] INFO  [traceId=] o.f.core.internal.command.DbMigrate - Current version of schema `lumen_db`: 1.3.1
-2026-09-18 18:10:07.503 [main] INFO  [traceId=] o.f.core.internal.command.DbMigrate - Schema `lumen_db` is up to date. No migration necessary.
-2026-09-18 18:10:19.609 [main] INFO  [traceId=] o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-9201"]
-2026-09-18 18:10:19.700 [main] INFO  [traceId=] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 9201 (http) with context path ''
-2026-09-18 18:10:24.095 [main] INFO  [traceId=] c.lumen.platform.PlatformApplication - Started PlatformApplication in 40.701 seconds (process running for 41.887)
-2026-09-18 18:10:35.477 [http-nio-9201-exec-1] INFO  [traceId=] o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-09-18 18:10:35.477 [http-nio-9201-exec-1] INFO  [traceId=] o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
-2026-09-18 18:10:35.479 [http-nio-9201-exec-1] INFO  [traceId=] o.s.web.servlet.DispatcherServlet - Completed initialization in 2 ms
+2026-09-18 18:41:05.048 [main] INFO  [traceId=] o.f.c.i.license.VersionPrinter - Flyway Community Edition 9.22.3 by Redgate
+2026-09-18 18:41:05.049 [main] INFO  [traceId=] o.f.c.i.license.VersionPrinter - See release notes here: https://rd.gt/416ObMi
+2026-09-18 18:41:05.050 [main] INFO  [traceId=] o.f.c.i.license.VersionPrinter - 
+2026-09-18 18:41:05.238 [main] INFO  [traceId=] org.flywaydb.core.FlywayExecutor - Database: jdbc:mysql://localhost:3306/lumen_db (MySQL 8.0)
+2026-09-18 18:41:05.653 [main] INFO  [traceId=] o.f.core.internal.command.DbMigrate - Current version of schema `lumen_db`: 1.3.1
+2026-09-18 18:41:05.790 [main] INFO  [traceId=] o.f.core.internal.command.DbMigrate - Schema `lumen_db` is up to date. No migration necessary.
+2026-09-18 18:41:11.516 [main] WARN  [traceId=] o.s.b.a.s.s.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: a5b9ed1b-6c8f-47a0-8081-5c0dd8889f10
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-09-18 18:41:13.915 [main] INFO  [traceId=] o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@47c356e, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@66e218d8, org.springframework.security.web.context.SecurityContextHolderFilter@4b5cdd07, org.springframework.security.web.header.HeaderWriterFilter@289da1bc, org.springframework.web.filter.CorsFilter@5b80b41d, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@1aaf73b7, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@731d0d5c, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@54ef9698, org.springframework.security.web.access.ExceptionTranslationFilter@2bda7a5b, org.springframework.security.web.access.intercept.AuthorizationFilter@7e7391e8]
+2026-09-18 18:41:20.257 [main] INFO  [traceId=] o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-9201"]
+2026-09-18 18:41:20.371 [main] INFO  [traceId=] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 9201 (http) with context path ''
+2026-09-18 18:41:23.886 [com.alibaba.nacos.client.naming.grpc.redo.0] WARN  [traceId=] com.alibaba.nacos.client.naming - Grpc Connection is disconnect, skip current redo task
+2026-09-18 18:41:25.013 [main] INFO  [traceId=] c.lumen.platform.PlatformApplication - Started PlatformApplication in 50.891 seconds (process running for 52.349)
+2026-09-18 18:49:28.998 [http-nio-9201-exec-1] INFO  [traceId=] o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-18 18:49:28.999 [http-nio-9201-exec-1] INFO  [traceId=] o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-09-18 18:49:29.001 [http-nio-9201-exec-1] INFO  [traceId=] o.s.web.servlet.DispatcherServlet - Completed initialization in 2 ms
