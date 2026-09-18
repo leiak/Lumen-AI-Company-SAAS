@@ -1,14 +1,6 @@
 {
   "flowRules": [
     {
-      "resource": "tenantList",
-      "grade": 1,
-      "count": 100,
-      "limitApp": "default",
-      "strategy": 0,
-      "controlBehavior": 0
-    },
-    {
       "resource": "/api/tenant/list",
       "grade": 1,
       "count": 100,
@@ -27,16 +19,16 @@
   ],
   "degradeRules": [
     {
-      "resource": "tenantList",
-      "grade": 0,
+      "resource": "/api/tenant/list",
+      "grade": 2,
       "count": 1000,
       "timeWindow": 5,
       "minRequestAmount": 10,
       "statIntervalMs": 1000
     },
     {
-      "resource": "/api/tenant/list",
-      "grade": 0,
+      "resource": "/api/tenant/page",
+      "grade": 2,
       "count": 1000,
       "timeWindow": 5,
       "minRequestAmount": 10,

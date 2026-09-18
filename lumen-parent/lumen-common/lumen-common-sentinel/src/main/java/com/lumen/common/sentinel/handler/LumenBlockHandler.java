@@ -40,7 +40,21 @@ public final class LumenBlockHandler {
     /**
      * Resource-level block handler for {@code @SentinelResource(blockHandler = "lumenBlock", blockHandlerClass = LumenBlockHandler.class)}.
      *
-     * <p>Static + parameter type matches what Sentinel's annotation aspect expects.</p>
+     * <p>Static + parameter type matches what Sentinel's annotation aspect expects.
+     * This overload mirrors the original method signature exactly so Sentinel's
+     * AOP advice (which prefers "original args + trailing BlockException") can
+     * locate it reflectively on {@code @SentinelResource}-annotated methods.</p>
+     */
+    public static R<?> lumenBlock(int pageNum, int pageSize, String keyword, BlockException e) {
+        return handle(e);
+    }
+
+    /**
+     * Single-argument fallback for {@code @SentinelResource}-annotated methods
+     * that don't carry arguments (or where Sentinel's 1.8.x version only looks
+     * up a no-arg / single-arg handler). Kept so older Sentinel fallbacks still
+     * resolve; the AOP advice picks the {@code (..., BlockException)} variant
+     * first when both are present.
      */
     public static R<?> lumenBlock(BlockException e) {
         return handle(e);
