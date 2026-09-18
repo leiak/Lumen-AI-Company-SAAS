@@ -44,14 +44,29 @@ public class TenantService {
         if (tenantMapper.findByCode(tenant.getCode()) != null) {
             throw new ServiceException(409, "Tenant code already exists: " + tenant.getCode());
         }
-        if (tenant.getStatus() == null) tenant.setStatus(1);
-        if (tenant.getTrialDays() == null) tenant.setTrialDays(30);
-        if (tenant.getExpireAt() == null) {
-            tenant.setExpireAt(LocalDateTime.now().plusDays(tenant.getTrialDays()));
-        }
-        tenantMapper.insert(tenant);
-        log.info("Created tenant id={} code={}", tenant.getId(), tenant.getCode());
-        return tenant;
+        // Strip client-controlled fields to prevent spoofing
+        Tenant toCreate = new Tenant();
+        toCreate.setCode(tenant.getCode());
+        toCreate.setName(tenant.getName());
+        toCreate.setShortName(tenant.getShortName());
+        toCreate.setContactName(tenant.getContactName());
+        toCreate.setContactPhone(tenant.getContactPhone());
+        toCreate.setContactEmail(tenant.getContactEmail());
+        toCreate.setIndustry(tenant.getIndustry());
+        toCreate.setScale(tenant.getScale());
+        toCreate.setRegion(tenant.getRegion());
+        toCreate.setPackageId(tenant.getPackageId());
+        toCreate.setLogoUrl(tenant.getLogoUrl());
+        toCreate.setDescription(tenant.getDescription());
+        // Server-controlled fields
+        toCreate.setStatus(tenant.getStatus() != null ? tenant.getStatus() : 1);
+        toCreate.setTrialDays(tenant.getTrialDays() != null ? tenant.getTrialDays() : 30);
+        toCreate.setExpireAt(tenant.getExpireAt() != null
+            ? tenant.getExpireAt()
+            : LocalDateTime.now().plusDays(toCreate.getTrialDays()));
+        tenantMapper.insert(toCreate);
+        log.info("Created tenant id={} code={}", toCreate.getId(), toCreate.getCode());
+        return toCreate;
     }
 
     @Transactional
