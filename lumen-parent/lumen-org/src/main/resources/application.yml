@@ -1,0 +1,46 @@
+server:
+  port: 9204
+
+spring:
+  profiles:
+    active: dev
+  application:
+    name: org-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: lumen-public
+        username: lumen
+        password: lumen
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://localhost:3306/lumen_db?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: root123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: redis123
+      timeout: 3s
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+logging:
+  level:
+    com.lumen: INFO
+    org.springframework.cloud: WARN
+    com.alibaba.cloud: WARN

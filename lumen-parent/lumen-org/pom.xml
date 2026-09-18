@@ -5,9 +5,78 @@
         <groupId>com.lumen</groupId>
         <artifactId>lumen-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
+
     <artifactId>lumen-org</artifactId>
     <name>lumen-org</name>
-    <description>STUB — to be implemented</description>
-    <packaging>jar</packaging>
+    <description>组织架构服务 (部门树 / 岗位 / 员工档案)</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lumen</groupId>
+            <artifactId>lumen-common-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lumen</groupId>
+            <artifactId>lumen-common-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lumen</groupId>
+            <artifactId>lumen-common-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lumen</groupId>
+            <artifactId>lumen-common-mybatis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lumen</groupId>
+            <artifactId>lumen-common-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lumen</groupId>
+            <artifactId>lumen-common-log</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-3-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions><execution><goals><goal>repackage</goal></goals></execution></executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
