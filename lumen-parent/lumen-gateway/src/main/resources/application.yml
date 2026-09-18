@@ -1,3 +1,25 @@
+###############################################################################
+# Canary / Gray Routing Convention
+#
+# Operators control canary rollout through NACOS INSTANCE METADATA, not route
+# config. Set `canary.weight` (0-100) on a single instance:
+#
+#   canary.weight=0   -> stable (default if absent)
+#   canary.weight=20  -> 20% canary
+#   canary.weight=100 -> full canary
+#
+# Per-request overrides use the X-Canary header:
+#
+#   X-Canary: gray    -> always pick a gray instance (fallback to stable if none)
+#   X-Canary: stable  -> always pick a stable instance
+#   (no header)       -> weighted random based on instance weights
+#
+# Downstream services receive `X-Canary-Gray: true|false` so they can shadow-log
+# or branch behavior during a rollout.
+#
+# See docs/p2/canary.md for the operator runbook.
+###############################################################################
+
 server:
   port: 9200
 
@@ -38,6 +60,24 @@ spring:
           predicates:
             - Path=/org/**
 
+        # ----------------------------------------------------------------------
+        # Canary routes (commented — uncomment to opt-in to canary for a service).
+        # Canary is enabled per-INSTANCE via Nacos metadata `canary.weight=N` on
+        # the specific instance you want to receive gray traffic. No code change
+        # is needed when adding or removing canary nodes; just set the metadata
+        # in the Nacos console.
+        #
+        # Example: 10% canary on auth-service
+        # - id: auth-route-canary
+        #   uri: lb://auth-service   # same target — CanaryWeightFilter picks the instance
+        #   predicates:
+        #     - Path=/auth/**
+        #
+        # Multiple route ids for the same Path simply route to the same target.
+        # The canary decision happens in CanaryWeightFilter regardless of which
+        # route id matched, so adding a "-canary" route is documentation only.
+        # ----------------------------------------------------------------------
+
 lumen:
   security:
     jwt:
@@ -49,4 +89,4 @@ logging:
     com.lumen: INFO
     org.springframework.cloud: WARN
     com.alibaba.cloud: WARN
-    org.springframework.cloud.gateway: INFO
+    com.springframework.cloud.gateway.filter.CanaryWeightFilter: INFO
