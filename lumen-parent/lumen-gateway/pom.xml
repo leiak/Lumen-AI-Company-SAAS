@@ -5,9 +5,79 @@
         <groupId>com.lumen</groupId>
         <artifactId>lumen-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
+
     <artifactId>lumen-gateway</artifactId>
     <name>lumen-gateway</name>
-    <description>STUB — to be implemented</description>
-    <packaging>jar</packaging>
+    <description>统一网关 (JWT 解析 / 多租户透传 / Nacos 服务发现路由)</description>
+
+    <dependencies>
+        <!-- Gateway (WebFlux, NOT Web) -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-gateway</artifactId>
+        </dependency>
+        <!-- reactive JWT support -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.lumen</groupId>
+            <artifactId>lumen-common-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lumen</groupId>
+            <artifactId>lumen-common-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lumen</groupId>
+            <artifactId>lumen-common-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lumen</groupId>
+            <artifactId>lumen-common-log</artifactId>
+        </dependency>
+
+        <!-- Nacos Discovery -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+
+        <!-- Bootstrap -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
+        </dependency>
+
+        <!-- JSON for response building in filters -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions><execution><goals><goal>repackage</goal></goals></execution></executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

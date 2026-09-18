@@ -1,0 +1,50 @@
+server:
+  port: 9200
+
+spring:
+  profiles:
+    active: dev
+  application:
+    name: lumen-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: lumen-public
+        username: lumen
+        password: lumen
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: auth-route
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**
+        - id: platform-route
+          uri: lb://platform-service
+          predicates:
+            - Path=/platform/**
+        - id: system-route
+          uri: lb://system-service
+          predicates:
+            - Path=/system/**
+        - id: org-route
+          uri: lb://org-service
+          predicates:
+            - Path=/org/**
+
+lumen:
+  security:
+    jwt:
+      secret: ${LUMEN_JWT_SECRET:dev-only-please-override-in-production-this-is-not-secure-32bytes-minimum-required}
+      issuer: lumen
+
+logging:
+  level:
+    com.lumen: INFO
+    org.springframework.cloud: WARN
+    com.alibaba.cloud: WARN
+    org.springframework.cloud.gateway: INFO
