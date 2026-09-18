@@ -2,6 +2,9 @@ package com.lumen.common.security.context;
 
 public class UserContextHolder {
 
+    public static final long SYSTEM_USER_ID = 0L;
+    public static final long SYSTEM_TENANT_ID = 0L;
+
     private static final ThreadLocal<UserContext> CONTEXT = new ThreadLocal<>();
 
     public static void set(UserContext ctx) {

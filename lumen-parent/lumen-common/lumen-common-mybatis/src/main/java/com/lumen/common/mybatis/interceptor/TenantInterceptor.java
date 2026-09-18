@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
 import com.lumen.common.security.context.UserContextHolder;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.expression.NullValue;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -14,6 +13,8 @@ import java.util.Set;
 
 @Component
 public class TenantInterceptor implements TenantLineHandler {
+
+    private static final long SYSTEM_TENANT_ID = 0L;
 
     private static final Set<String> IGNORE_TABLES = new HashSet<>(Arrays.asList(
         "sys_config", "sys_dict_type", "sys_dict_data",
@@ -24,7 +25,7 @@ public class TenantInterceptor implements TenantLineHandler {
     @Override
     public Expression getTenantId() {
         Long tid = UserContextHolder.getTenantId();
-        return tid == null ? new NullValue() : new LongValue(tid);
+        return new LongValue(tid == null ? SYSTEM_TENANT_ID : tid);
     }
 
     @Override
