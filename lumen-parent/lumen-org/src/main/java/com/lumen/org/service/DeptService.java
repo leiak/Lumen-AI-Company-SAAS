@@ -13,8 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -24,21 +26,40 @@ public class DeptService {
 
     public List<DeptNode> tree() {
         List<SysDept> all = deptMapper.listAllActive();
-        // Build map id -> node
         Map<Long, DeptNode> nodeMap = new HashMap<>();
+        Map<Long, SysDept> rawMap = new HashMap<>();
         for (SysDept d : all) {
             nodeMap.put(d.getDeptId(), DeptNode.from(d));
+            rawMap.put(d.getDeptId(), d);
         }
-        // Assemble tree
         List<DeptNode> roots = new ArrayList<>();
+        Set<Long> visited = new HashSet<>();
         for (SysDept d : all) {
             DeptNode node = nodeMap.get(d.getDeptId());
             if (d.getParentId() == null || d.getParentId() == 0L) {
                 roots.add(node);
             } else {
                 DeptNode parent = nodeMap.get(d.getParentId());
-                if (parent != null) parent.getChildren().add(node);
-                else roots.add(node); // orphaned: keep at root level
+                if (parent != null) {
+                    parent.getChildren().add(node);
+                } else {
+                    // Walk ancestors to detect cycle and find a safe root
+                    Long cur = d.getParentId();
+                    Set<Long> chain = new HashSet<>();
+                    chain.add(d.getDeptId());
+                    boolean cycled = false;
+                    while (cur != null && cur != 0L && !cycled) {
+                        if (!chain.add(cur)) { cycled = true; break; }
+                        SysDept ancestor = rawMap.get(cur);
+                        if (ancestor == null) { cur = null; break; }
+                        cur = ancestor.getParentId();
+                    }
+                    if (cycled) {
+                        throw new ServiceException(500, "Dept tree has a cycle starting at id=" + d.getDeptId());
+                    }
+                    // Orphaned — keep at root level for visibility
+                    roots.add(node);
+                }
             }
         }
         return roots;
@@ -62,18 +83,38 @@ public class DeptService {
 
     @Transactional
     public SysDept create(SysDept dept) {
+        if (dept.getDeptName() == null || dept.getDeptName().isBlank()) {
+            throw new ServiceException(400, "deptName is required");
+        }
         if (dept.getParentId() == null) dept.setParentId(0L);
         if (dept.getStatus() == null) dept.setStatus("0");
         if (dept.getOrderNum() == null) dept.setOrderNum(0);
+
         // Compute ancestors
+        String ancestors;
         if (dept.getParentId() == 0L) {
-            dept.setAncestors("0");
+            ancestors = "0";
         } else {
             SysDept parent = getById(dept.getParentId());
-            dept.setAncestors(parent.getAncestors() + "," + parent.getDeptId());
+            ancestors = parent.getAncestors() + "," + parent.getDeptId();
         }
-        deptMapper.insert(dept);
-        return dept;
+
+        // Build a fresh entity — do NOT copy client-controlled fields
+        SysDept toCreate = new SysDept();
+        toCreate.setParentId(dept.getParentId());
+        toCreate.setAncestors(ancestors);
+        toCreate.setDeptName(dept.getDeptName());
+        toCreate.setDeptCategory(dept.getDeptCategory());
+        toCreate.setOrderNum(dept.getOrderNum());
+        toCreate.setLeader(dept.getLeader());
+        toCreate.setLeaderName(dept.getLeaderName());
+        toCreate.setPhone(dept.getPhone());
+        toCreate.setEmail(dept.getEmail());
+        toCreate.setStatus(dept.getStatus());
+        toCreate.setRemark(dept.getRemark());
+        // isBuiltin defaults to 0 (null); tenantId set by TenantLineInnerInterceptor
+        deptMapper.insert(toCreate);
+        return toCreate;
     }
 
     @Transactional
@@ -103,8 +144,7 @@ public class DeptService {
             existing.setParentId(dept.getParentId());
         }
 
-        String newAncestors = existing.getAncestors();
-        String newPrefix = newAncestors + "," + existing.getDeptId();
+        String newPrefix = existing.getAncestors() + "," + existing.getDeptId();
 
         // Copy mutable fields from request
         existing.setDeptName(dept.getDeptName());

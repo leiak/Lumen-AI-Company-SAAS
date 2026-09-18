@@ -1,6 +1,9 @@
 package com.lumen.org.controller;
 
 import com.lumen.common.core.domain.R;
+import com.lumen.common.core.exception.ServiceException;
+import com.lumen.common.security.context.UserContext;
+import com.lumen.common.security.context.UserContextHolder;
 import com.lumen.org.entity.SysEmployee;
 import com.lumen.org.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +32,15 @@ public class EmployeeController {
 
     @GetMapping("/by-user/{userId}")
     public R<SysEmployee> getByUserId(@PathVariable Long userId) {
+        UserContext ctx = UserContextHolder.get();
+        if (ctx == null) {
+            throw new ServiceException(401, "Not authenticated");
+        }
+        boolean isSelf = userId.equals(ctx.getUserId());
+        boolean isSuperAdmin = ctx.getRoles() != null && ctx.getRoles().contains("super_admin");
+        if (!isSelf && !isSuperAdmin) {
+            throw new ServiceException(403, "Not authorized to view other users' employee record");
+        }
         return R.ok(employeeService.getByUserId(userId));
     }
 

@@ -8,6 +8,7 @@ import com.lumen.org.entity.SysPost;
 import com.lumen.org.mapper.SysPostMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,19 +33,41 @@ public class PostService {
         return p;
     }
 
+    @Transactional
     public SysPost create(SysPost post) {
+        if (post.getPostCode() == null || post.getPostCode().isBlank()) {
+            throw new ServiceException(400, "postCode is required");
+        }
+        if (post.getPostName() == null || post.getPostName().isBlank()) {
+            throw new ServiceException(400, "postName is required");
+        }
         if (post.getStatus() == null) post.setStatus("0");
         if (post.getPostSort() == null) post.setPostSort(0);
-        postMapper.insert(post);
-        return post;
+
+        SysPost toCreate = new SysPost();
+        toCreate.setPostCode(post.getPostCode());
+        toCreate.setPostName(post.getPostName());
+        toCreate.setPostSort(post.getPostSort());
+        toCreate.setStatus(post.getStatus());
+        toCreate.setRemark(post.getRemark());
+        // tenantId is injected by TenantLineInnerInterceptor
+        postMapper.insert(toCreate);
+        return toCreate;
     }
 
+    @Transactional
     public SysPost update(SysPost post) {
-        getById(post.getPostId()); // 404 if missing
-        postMapper.updateById(post);
-        return post;
+        SysPost existing = getById(post.getPostId());
+        if (post.getPostCode() != null) existing.setPostCode(post.getPostCode());
+        if (post.getPostName() != null) existing.setPostName(post.getPostName());
+        if (post.getPostSort() != null) existing.setPostSort(post.getPostSort());
+        if (post.getStatus() != null) existing.setStatus(post.getStatus());
+        if (post.getRemark() != null) existing.setRemark(post.getRemark());
+        postMapper.updateById(existing);
+        return existing;
     }
 
+    @Transactional
     public void delete(Long id) {
         getById(id);
         postMapper.deleteById(id);
