@@ -1,8 +1,11 @@
 package com.lumen.auth.controller;
 
+import com.lumen.auth.dto.LoginResult;
+import com.lumen.auth.service.LoginService;
 import com.lumen.auth.service.MfaService;
 import com.lumen.auth.service.MfaService.EnrollResult;
 import com.lumen.common.core.domain.R;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -17,9 +20,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * MFA enrollment/disable endpoints (authenticated). The step-up {@code /auth/mfa/verify}
- * lives on {@link AuthController} because it returns a full {@code LoginResult} and
- * participates in the normal login flow.
+ * MFA endpoints. Authenticated enrollment / confirm / disable live at
+ * {@code /mfa/enroll|confirm|disable}. The step-up endpoint
+ * {@code POST /mfa/verify} completes the login flow and is callable without an
+ * authenticated session (the mfa-token carries identity).
  */
 @Slf4j
 @RestController
@@ -29,6 +33,7 @@ import java.util.List;
 public class MfaController {
 
     private final MfaService mfaService;
+    private final LoginService loginService;
 
     /** Begin or resume enrollment — returns the secret + otpauth URI for QR rendering. */
     @PostMapping("/enroll")
@@ -51,9 +56,29 @@ public class MfaController {
         return mfaService.disable(req.getCode());
     }
 
-    /** Minimal request body: just the TOTP code. */
+    /**
+     * Complete MFA step-up. The body carries the short-lived mfaToken returned from
+     * {@code /auth/login} plus a 6-digit TOTP code. On success returns a full
+     * {@link LoginResult} with a session row written via {@code SessionService}.
+     */
+    @PostMapping("/verify")
+    public R<LoginResult> verify(@RequestBody @Validated VerifyRequest req,
+                                 HttpServletRequest http) {
+        return R.ok(loginService.verifyMfa(req.getMfaToken(), req.getCode(), http));
+    }
+
+    /** Minimal request body: just the TOTP code (enroll/confirm/disable). */
     @Data
     public static class CodeRequest {
+        @NotBlank
+        private String code;
+    }
+
+    /** Step-up verify body: short-lived mfaToken + 6-digit TOTP code. */
+    @Data
+    public static class VerifyRequest {
+        @NotBlank
+        private String mfaToken;
         @NotBlank
         private String code;
     }

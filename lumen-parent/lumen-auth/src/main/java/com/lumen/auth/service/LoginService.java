@@ -48,7 +48,7 @@ public class LoginService {
      * Authenticate user credentials. If MFA is enrolled (or required by policy) AND the
      * password is valid, returns an {@link MfaChallenge} instead of a full
      * {@link LoginResult} — the caller must complete the step-up at
-     * {@code POST /auth/mfa/verify}.
+     * {@code POST /mfa/verify}.
      */
     public Object login(LoginRequest req, HttpServletRequest http) {
         String ip = clientIp(http);

@@ -85,7 +85,7 @@
 |---|---|
 | `/auth/login` | 账号密码登录 |
 | `/auth/mfa/bind` | 绑定 MFA |
-| `/auth/mfa/verify` | 验证 MFA |
+| `/mfa/verify` | 验证 MFA |
 | `/auth/sso/{platform}/url` | 获取 SSO 授权 URL |
 | `/auth/sso/{platform}/callback` | SSO 回调 |
 | `/auth/logout` | 登出 |

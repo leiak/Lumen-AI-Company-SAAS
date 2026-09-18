@@ -51,7 +51,7 @@ public class JwtTokenProvider {
     /**
      * Generate a short-lived MFA step-up token. Carries the standard claims plus
      * {@code mfa_token=1}. The gateway/filter chain MUST refuse to honour this token
-     * for resource access — only the {@code /auth/mfa/verify} endpoint accepts it.
+     * for resource access — only the {@code /mfa/verify} endpoint accepts it.
      *
      * @param ctx           user identity (uid/tid/uname/nname/etc.)
      * @param expireSeconds caller-supplied TTL (typically 300s = 5 min)
