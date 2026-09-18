@@ -41,14 +41,26 @@ public class JwtTokenProvider {
     }
 
     public String generateAccessToken(UserContext ctx) {
-        return generateToken(ctx, "access", props.getAccessExpireSeconds());
+        return generateToken(ctx, "access", props.getAccessExpireSeconds(), null);
     }
 
     public String generateRefreshToken(UserContext ctx) {
-        return generateToken(ctx, "refresh", props.getRefreshExpireSeconds());
+        return generateToken(ctx, "refresh", props.getRefreshExpireSeconds(), null);
     }
 
-    private String generateToken(UserContext ctx, String type, long expireSeconds) {
+    /**
+     * Generate a short-lived MFA step-up token. Carries the standard claims plus
+     * {@code mfa_token=1}. The gateway/filter chain MUST refuse to honour this token
+     * for resource access — only the {@code /auth/mfa/verify} endpoint accepts it.
+     *
+     * @param ctx           user identity (uid/tid/uname/nname/etc.)
+     * @param expireSeconds caller-supplied TTL (typically 300s = 5 min)
+     */
+    public String generateMfaToken(UserContext ctx, long expireSeconds) {
+        return generateToken(ctx, "mfa", expireSeconds, "1");
+    }
+
+    private String generateToken(UserContext ctx, String type, long expireSeconds, String mfaFlag) {
         // Honor caller's tokenId as jti (e.g. session UUID from auth service).
         // Fall back to a random UUID for callers that don't care about session correlation.
         String jti = (ctx.getTokenId() != null && !ctx.getTokenId().isBlank())
@@ -65,6 +77,9 @@ public class JwtTokenProvider {
         claims.put("nname", ctx.getNickName());
         claims.put("did", ctx.getDeptId());
         claims.put("ds", ctx.getDataScope());
+        if (mfaFlag != null) {
+            claims.put("mfa_token", mfaFlag);
+        }
 
         return Jwts.builder()
             .id(jti)

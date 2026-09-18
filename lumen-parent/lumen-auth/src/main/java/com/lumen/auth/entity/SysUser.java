@@ -29,6 +29,8 @@ public class SysUser extends BaseEntity {
     private Integer dataScope;
     private String mfaSecret;
     private Integer mfaEnabled;
+    /** Admin-driven "force MFA on next login" flag. See V1.5.0__init_mfa.sql. */
+    private Integer mfaRequired;
     private LocalDateTime pwdExpireAt;
     private String pwdHistory;
     private String idCardEnc;

@@ -2,6 +2,7 @@ package com.lumen.auth.controller;
 
 import com.lumen.auth.dto.LoginRequest;
 import com.lumen.auth.dto.LoginResult;
+import com.lumen.auth.dto.MfaChallenge;
 import com.lumen.auth.service.LoginService;
 import com.lumen.auth.service.SessionService;
 import com.lumen.common.core.domain.R;
@@ -13,14 +14,18 @@ import com.lumen.common.security.jwt.JwtTokenProvider;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Validated
 public class AuthController {
 
     private final LoginService loginService;
@@ -28,9 +33,25 @@ public class AuthController {
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtProperties jwtProperties;
 
+    /**
+     * Password login. Returns either a {@link LoginResult} (full JWT issued) or an
+     * {@link MfaChallenge} (the caller must complete {@code POST /auth/mfa/verify}).
+     */
     @PostMapping("/login")
-    public R<LoginResult> login(@Valid @RequestBody LoginRequest req, HttpServletRequest http) {
-        return R.ok(loginService.login(req, http));
+    public R<?> login(@Valid @RequestBody LoginRequest req, HttpServletRequest http) {
+        Object result = loginService.login(req, http);
+        return R.ok(result);
+    }
+
+    /**
+     * Complete MFA step-up. The body carries the short-lived mfaToken returned from
+     * {@code /auth/login} plus a 6-digit TOTP code. On success returns a full
+     * {@link LoginResult} with a session row written via {@link SessionService}.
+     */
+    @PostMapping("/mfa/verify")
+    public R<LoginResult> verifyMfa(@RequestBody @Validated MfaVerifyRequest req,
+                                    HttpServletRequest http) {
+        return R.ok(loginService.verifyMfa(req.getMfaToken(), req.getCode(), http));
     }
 
     /**
@@ -84,5 +105,13 @@ public class AuthController {
     @GetMapping("/health")
     public R<String> health() {
         return R.ok("auth-service is UP");
+    }
+
+    @Data
+    public static class MfaVerifyRequest {
+        @NotBlank
+        private String mfaToken;
+        @NotBlank
+        private String code;
     }
 }
