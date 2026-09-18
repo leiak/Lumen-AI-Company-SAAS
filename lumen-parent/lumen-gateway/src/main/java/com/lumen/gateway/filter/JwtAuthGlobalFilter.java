@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Slf4j
@@ -30,14 +29,13 @@ public class JwtAuthGlobalFilter implements GlobalFilter, Ordered {
         "/auth/login",
         "/auth/refresh",
         "/auth/health",
-        "/actuator/health",
         "/platform/health",
         "/system/health",
         "/org/health"
     );
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -63,10 +61,15 @@ public class JwtAuthGlobalFilter implements GlobalFilter, Ordered {
         if (!"access".equals(type)) {
             return unauthorized(exchange, "Token type must be 'access'");
         }
+        Long uid = claims.get("uid", Long.class);
+        Long tid = claims.get("tid", Long.class);
+        if (uid == null || tid == null) {
+            return unauthorized(exchange, "Invalid token claims");
+        }
 
         ServerHttpRequest mutated = exchange.getRequest().mutate()
-            .header("X-User-Id", String.valueOf(claims.get("uid", Long.class)))
-            .header("X-Tenant-Id", String.valueOf(claims.get("tid", Long.class)))
+            .header("X-User-Id", String.valueOf(uid))
+            .header("X-Tenant-Id", String.valueOf(tid))
             .header("X-User-Name", String.valueOf(claims.get("uname", String.class)))
             .header("X-Session-Id", claims.getId())
             .build();
