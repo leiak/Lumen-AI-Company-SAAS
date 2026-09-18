@@ -62,7 +62,7 @@ public class TicketManager {
         row.setTenantId(tenantId);
         row.setAppId(appId);
         row.setExpiresAt(expiresAt);
-        row.setConsumedAt(null);
+        // consumedAt left null by default (尚未消费)。
         ticketMapper.insert(row);
 
         log.info("SSO ticket issued: appId={}, userId={}, tenantId={}, expiresAt={}",

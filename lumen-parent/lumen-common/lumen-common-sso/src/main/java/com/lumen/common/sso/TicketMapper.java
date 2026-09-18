@@ -1,5 +1,6 @@
 package com.lumen.common.sso;
 
+import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -10,8 +11,14 @@ import org.apache.ibatis.annotations.Update;
  * <p>
  * 仅暴露一次性消费所需的原子 UPDATE 方法；新增/查询通过继承自 {@link BaseMapper} 的方法完成。
  * </p>
+ * <p>
+ * 该 Mapper 上的所有方法都必须跳过多租户拦截器：{@code sys_sso_ticket} 是跨租户资源——
+ * 票据签发时的租户和消费时的租户可能不同（上游认证 → 下游应用）。{@code IGNORE_TABLES}
+ * 白名单也会命中，但方法级注解是纵深防御的一层。
+ * </p>
  */
 @Mapper
+@InterceptorIgnore(tenantLine = "true")
 public interface TicketMapper extends BaseMapper<SysSsoTicket> {
 
     /**

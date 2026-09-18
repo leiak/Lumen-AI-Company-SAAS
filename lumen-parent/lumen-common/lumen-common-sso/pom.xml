@@ -19,6 +19,10 @@
             <artifactId>lumen-common-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.lumen</groupId>
+            <artifactId>lumen-common-mybatis</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
         </dependency>

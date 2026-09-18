@@ -19,7 +19,12 @@ public class TenantInterceptor implements TenantLineHandler {
     private static final Set<String> IGNORE_TABLES = new HashSet<>(Arrays.asList(
         "sys_config", "sys_dict_type", "sys_dict_data",
         "tenant", "tenant_package", "lumen_application",
-        "common_seq"
+        "common_seq",
+        // sys_sso_ticket is intrinsically cross-tenant: a ticket issued for one
+        // tenant must be consumable by downstream apps regardless of the
+        // downstream user's tenant context. See TicketMapper#consumeAtomically
+        // (also annotated @InterceptorIgnore as defense in depth).
+        "sys_sso_ticket"
     ));
 
     @Override

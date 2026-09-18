@@ -1,29 +1,28 @@
 package com.lumen.common.sso;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.lumen.common.mybatis.entity.BaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDateTime;
 
 /**
  * SSO 票据表实体。
  * <p>
- * 不继承 {@code BaseEntity}：本表的自增主键为 {@code id}，而 {@code BaseEntity} 默认按
- * {@code createBy/createTime/updateBy/updateTime/deleted} 提供自动填充——这里我们保留
- * 这些字段但通过 MyBatis-Plus 的 {@code @TableField(fill = ...)} 让 {@code FieldFillHandler}
- * 接管自动填充；{@code deleted} 用 {@code @TableLogic} 启用逻辑删除。
+ * 复用 {@link BaseEntity} 以复用 {@code createBy/createTime/updateBy/updateTime/deleted}
+ * 自动填充与逻辑删除约定；本表的自增主键仍由 {@code id} 持有。
  * </p>
  * <p>
  * 票据一次性消费：原子 UPDATE 由 {@link TicketMapper#consumeAtomically} 完成，查询路径仅用于诊断。
  * </p>
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("sys_sso_ticket")
-public class SysSsoTicket {
+public class SysSsoTicket extends BaseEntity {
 
     @TableId(type = IdType.AUTO)
     private Long id;
@@ -45,19 +44,4 @@ public class SysSsoTicket {
 
     /** 票据消费时间，NULL 表示未消费。 */
     private LocalDateTime consumedAt;
-
-    @TableField(value = "create_by", fill = com.baomidou.mybatisplus.annotation.FieldFill.INSERT)
-    private Long createBy;
-
-    @TableField(value = "create_time", fill = com.baomidou.mybatisplus.annotation.FieldFill.INSERT)
-    private LocalDateTime createTime;
-
-    @TableField(value = "update_by", fill = com.baomidou.mybatisplus.annotation.FieldFill.INSERT_UPDATE)
-    private Long updateBy;
-
-    @TableField(value = "update_time", fill = com.baomidou.mybatisplus.annotation.FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
-
-    @TableLogic(value = "0", delval = "1")
-    private Integer deleted;
 }

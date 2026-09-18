@@ -1,11 +1,12 @@
 package com.lumen.auth.service;
 
 import com.lumen.auth.entity.SysUser;
+import com.lumen.auth.entity.SysUserSession;
 import com.lumen.auth.mapper.SysUserMapper;
 import com.lumen.common.core.constant.CommonConstants;
 import com.lumen.common.core.domain.R;
 import com.lumen.common.core.exception.ServiceException;
-import com.lumen.common.redis.utils.RedisUtils;
+import com.lumen.common.security.context.UserContext;
 import com.lumen.common.security.jwt.JwtProperties;
 import com.lumen.common.security.jwt.JwtTokenProvider;
 import com.lumen.common.sso.TicketManager;
@@ -48,7 +49,7 @@ class SsoServiceTest {
     private SysUserMapper userMapper;
 
     @Mock
-    private RedisUtils redisUtils;
+    private SessionService sessionService;
 
     @InjectMocks
     private SsoService ssoService;
@@ -84,11 +85,15 @@ class SsoServiceTest {
     }
 
     @Test
-    @DisplayName("issue: userId 非法时直接返回失败而不调 ticketManager")
+    @DisplayName("issue: 非法入参由 manager 抛出，由 service 翻译为 R.fail")
     void issue_rejectsInvalidUserId() {
+        // manager.validateUserId 会拒绝 userId<=0；SsoService.issue 把 IllegalArgumentException
+        // 翻译为 R.fail（CRITICAL M9：避免与 manager 重复校验）。
+        when(ticketManager.issue(eq(0L), eq(TENANT_ID), eq(APP_ID), any()))
+            .thenThrow(new IllegalArgumentException("userId must be a positive number, got 0"));
+
         R<SsoService.IssueResult> result = ssoService.issue(0L, TENANT_ID, APP_ID);
         assertEquals(CommonConstants.FAIL_CODE, result.getCode());
-        verifyNoInteractions(ticketManager);
     }
 
     @Test
@@ -105,7 +110,7 @@ class SsoServiceTest {
     // ---------------------------------------------------------------
 
     @Test
-    @DisplayName("exchange: 票据消费成功，返回 token + sessionId 并写 Redis")
+    @DisplayName("exchange: 票据消费成功，返回 token + sessionId 并复用 SessionService")
     void exchange_happyPath() {
         LocalDateTime exp = LocalDateTime.now().plusMinutes(5);
         TicketPrincipal principal = new TicketPrincipal(USER_ID, TENANT_ID, APP_ID, exp);
@@ -117,26 +122,39 @@ class SsoServiceTest {
         stub.setTenantId(TENANT_ID);
         stub.setUserName("alice");
         stub.setNickName("Alice");
+        stub.setDeptId(42L);
+        stub.setDataScope(3);
         when(userMapper.findByUserId(USER_ID)).thenReturn(stub);
 
-        R<SsoService.ExchangeResult> result = ssoService.exchange(TICKET, APP_ID);
+        SysUserSession session = new SysUserSession();
+        session.setSessionId("sess-uuid");
+        when(sessionService.createSession(eq(USER_ID), eq(TENANT_ID), eq("Alice"),
+            any(), any(), eq("SSO"))).thenReturn(session);
+
+        R<SsoService.ExchangeResult> result = ssoService.exchange(TICKET, APP_ID, "1.2.3.4", "ua/1.0");
 
         assertNotNull(result);
         assertEquals(CommonConstants.SUCCESS_CODE, result.getCode());
         SsoService.ExchangeResult body = result.getData();
         assertNotNull(body);
         assertEquals("jwt.token.value", body.token());
-        assertNotNull(body.sessionId());
-        assertFalse(body.sessionId().isBlank());
+        assertEquals("sess-uuid", body.sessionId());
         assertEquals(USER_ID, body.userId());
         assertEquals(TENANT_ID, body.tenantId());
         assertEquals("alice", body.userName());
 
-        ArgumentCaptor<String> keyCap = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Object> valCap = ArgumentCaptor.forClass(Object.class);
-        verify(redisUtils).setSeconds(keyCap.capture(), valCap.capture(), eq(7200L));
-        assertTrue(keyCap.getValue().startsWith("auth:session:"));
-        assertEquals(USER_ID + ":" + TENANT_ID, valCap.getValue().toString());
+        // JWT 必须包含 deptId/dataScope（M8/I8）。
+        ArgumentCaptor<UserContext> ctxCap = ArgumentCaptor.forClass(UserContext.class);
+        verify(jwtTokenProvider).generateAccessToken(ctxCap.capture());
+        UserContext used = ctxCap.getValue();
+        assertEquals(42L, used.getDeptId());
+        assertEquals(3, used.getDataScope());
+        assertEquals("sess-uuid", used.getTokenId());
+
+        // 必须复用 SessionService.createSession（C3）。
+        verify(sessionService).createSession(eq(USER_ID), eq(TENANT_ID), eq("Alice"),
+            eq("1.2.3.4"), eq("ua/1.0"), eq("SSO"));
+        // SsoService 自己不再写 Redis——Redis 由 SessionService 负责。
     }
 
     @Test
@@ -145,10 +163,10 @@ class SsoServiceTest {
         when(ticketManager.consume(TICKET, APP_ID)).thenReturn(null);
 
         ServiceException ex = assertThrows(ServiceException.class,
-            () -> ssoService.exchange(TICKET, APP_ID));
+            () -> ssoService.exchange(TICKET, APP_ID, "ip", "ua"));
         assertEquals(CommonConstants.UNAUTHORIZED, ex.getCode());
         verify(jwtTokenProvider, never()).generateAccessToken(any());
-        verifyNoInteractions(redisUtils);
+        verifyNoInteractions(sessionService);
     }
 
     @Test
@@ -158,21 +176,22 @@ class SsoServiceTest {
         when(ticketManager.consume(TICKET, APP_ID)).thenReturn(null);
 
         ServiceException ex = assertThrows(ServiceException.class,
-            () -> ssoService.exchange(TICKET, APP_ID));
+            () -> ssoService.exchange(TICKET, APP_ID, "ip", "ua"));
         assertEquals(CommonConstants.UNAUTHORIZED, ex.getCode());
         verify(jwtTokenProvider, never()).generateAccessToken(any());
+        verifyNoInteractions(sessionService);
     }
 
     @Test
     @DisplayName("exchange: ticket 为空抛出 400")
     void exchange_rejectsBlankTicket() {
         ServiceException ex = assertThrows(ServiceException.class,
-            () -> ssoService.exchange(null, APP_ID));
+            () -> ssoService.exchange(null, APP_ID, "ip", "ua"));
         assertEquals(400, ex.getCode());
         verifyNoInteractions(ticketManager);
 
         ServiceException ex2 = assertThrows(ServiceException.class,
-            () -> ssoService.exchange("   ", APP_ID));
+            () -> ssoService.exchange("   ", APP_ID, "ip", "ua"));
         assertEquals(400, ex2.getCode());
     }
 
@@ -180,12 +199,12 @@ class SsoServiceTest {
     @DisplayName("exchange: appId 为空抛出 400")
     void exchange_rejectsBlankAppId() {
         ServiceException ex = assertThrows(ServiceException.class,
-            () -> ssoService.exchange(TICKET, null));
+            () -> ssoService.exchange(TICKET, null, "ip", "ua"));
         assertEquals(400, ex.getCode());
         verifyNoInteractions(ticketManager);
 
         ServiceException ex2 = assertThrows(ServiceException.class,
-            () -> ssoService.exchange(TICKET, "  "));
+            () -> ssoService.exchange(TICKET, "  ", "ip", "ua"));
         assertEquals(400, ex2.getCode());
     }
 
@@ -198,11 +217,17 @@ class SsoServiceTest {
         when(userMapper.findByUserId(USER_ID)).thenReturn(null);
         when(jwtTokenProvider.generateAccessToken(any())).thenReturn("jwt.token.value");
 
-        R<SsoService.ExchangeResult> result = ssoService.exchange(TICKET, APP_ID);
+        SysUserSession session = new SysUserSession();
+        session.setSessionId("sess-uuid");
+        when(sessionService.createSession(eq(USER_ID), eq(TENANT_ID), isNull(),
+            any(), any(), eq("SSO"))).thenReturn(session);
+
+        R<SsoService.ExchangeResult> result = ssoService.exchange(TICKET, APP_ID, "ip", "ua");
 
         assertEquals(CommonConstants.SUCCESS_CODE, result.getCode());
         assertEquals(USER_ID, result.getData().userId());
         assertNull(result.getData().userName());
-        verify(redisUtils).setSeconds(anyString(), any(), eq(7200L));
+        verify(sessionService).createSession(eq(USER_ID), eq(TENANT_ID), isNull(),
+            eq("ip"), eq("ua"), eq("SSO"));
     }
 }

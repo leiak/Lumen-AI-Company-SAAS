@@ -1,23 +1,30 @@
 package com.lumen.auth.controller;
 
+import com.lumen.auth.dto.SsoExchangeRequest;
+import com.lumen.auth.dto.SsoIssueRequest;
 import com.lumen.auth.service.SsoService;
 import com.lumen.auth.service.SsoService.ExchangeResult;
 import com.lumen.auth.service.SsoService.IssueResult;
+import com.lumen.common.core.exception.ServiceException;
 import com.lumen.common.core.domain.R;
+import com.lumen.common.security.context.UserContext;
 import com.lumen.common.security.context.UserContextHolder;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
 /**
  * SSO 票据端点：提供票据签发与兑奖两个接口。
  * <p>
- * - {@code POST /sso/issue}：已登录用户调用，颁发不透明随机票据。
+ * - {@code POST /sso/issue}：已登录用户调用，颁发不透明随机票据。身份仅来自
+ *   {@link UserContextHolder}；body 中绝不接受 {@code userId}/{@code tenantId}，
+ *   以避免越权为其他用户/租户签发票据。仅 {@code appId} 可由调用方指定。
  * - {@code POST /sso/exchange}：下游应用调用，原子消费票据换取 JWT。
  * </p>
  */
@@ -31,57 +38,39 @@ public class SsoController {
 
     /**
      * 签发 SSO 票据。
-     * <p>
-     * 入参优先级：body 显式参数 &gt; 调用方当前会话上下文（UserContextHolder）。
-     * </p>
      */
     @PostMapping("/issue")
-    public R<IssueResult> issue(@RequestBody(required = false) Map<String, Object> body) {
-        Long userId = readLong(body, "userId", UserContextHolder.getUserId());
-        Long tenantId = readLong(body, "tenantId", UserContextHolder.getTenantId());
-        String appId = readString(body, "appId");
-        log.info("SSO issue requested: userId={}, tenantId={}, appId={}", userId, tenantId, appId);
-        return ssoService.issue(userId, tenantId, appId);
+    @PreAuthorize("isAuthenticated()")
+    public R<IssueResult> issue(@Valid @RequestBody(required = false) SsoIssueRequest req) {
+        UserContext ctx = UserContextHolder.get();
+        if (ctx == null) {
+            throw new ServiceException(401, "Not authenticated");
+        }
+        String appId = req == null ? null : req.getAppId();
+        log.info("SSO issue requested: userId={}, tenantId={}, appId={}",
+            ctx.getUserId(), ctx.getTenantId(), appId);
+        // 身份仅来自会话上下文——永远不要从 body 读取 userId/tenantId。
+        return ssoService.issue(ctx.getUserId(), ctx.getTenantId(), appId);
     }
 
     /**
      * 兑换 SSO 票据为 JWT。
      */
     @PostMapping("/exchange")
-    public R<ExchangeResult> exchange(@RequestBody Map<String, Object> body) {
-        String ticket = body == null ? null : asString(body.get("ticket"));
-        String appId = body == null ? null : asString(body.get("appId"));
-        log.info("SSO exchange requested: appId={}", appId);
-        return ssoService.exchange(ticket, appId);
+    public R<ExchangeResult> exchange(@Valid @RequestBody SsoExchangeRequest req,
+                                      HttpServletRequest http) {
+        log.info("SSO exchange requested: appId={}", req.getAppId());
+        return ssoService.exchange(req.getTicket(), req.getAppId(),
+            clientIp(http), http.getHeader("User-Agent"));
     }
 
     // ---------------------------------------------------------------------
     // helpers
     // ---------------------------------------------------------------------
 
-    private static Long readLong(Map<String, Object> body, String key, Long fallback) {
-        if (body == null) return fallback;
-        Object v = body.get(key);
-        if (v == null) return fallback;
-        if (v instanceof Number n) return n.longValue();
-        if (v instanceof String s && !s.isBlank()) {
-            try {
-                return Long.parseLong(s.trim());
-            } catch (NumberFormatException ignored) {
-                return fallback;
-            }
-        }
-        return fallback;
-    }
-
-    private static String readString(Map<String, Object> body, String key) {
-        if (body == null) return null;
-        Object v = body.get(key);
-        return v == null ? null : asString(v);
-    }
-
-    private static String asString(Object v) {
-        if (v == null) return null;
-        return v.toString();
+    private static String clientIp(HttpServletRequest http) {
+        String xff = http.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isBlank()) return xff.split(",")[0].trim();
+        return http.getRemoteAddr();
     }
 }
