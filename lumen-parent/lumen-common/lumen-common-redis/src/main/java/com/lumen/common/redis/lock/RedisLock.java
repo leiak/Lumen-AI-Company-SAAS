@@ -18,12 +18,15 @@ public class RedisLock {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final String UNLOCK_SCRIPT =
+    private static final String UNLOCK_SCRIPT_TEXT =
         "if redis.call('get', KEYS[1]) == ARGV[1] then " +
         "  return redis.call('del', KEYS[1]) " +
         "else " +
         "  return 0 " +
         "end";
+
+    private static final DefaultRedisScript<Long> UNLOCK_SCRIPT =
+        new DefaultRedisScript<>(UNLOCK_SCRIPT_TEXT, Long.class);
 
     public <T> T tryLock(String key, Duration timeout, Supplier<T> action) {
         String lockKey = "lumen:lock:" + key;
@@ -31,13 +34,14 @@ public class RedisLock {
         boolean ok = Boolean.TRUE.equals(
             redisTemplate.opsForValue().setIfAbsent(lockKey, lockValue, timeout));
         if (!ok) {
+            log.debug("Lock acquire failed for key: {}", key);
             throw new RuntimeException("获取锁失败: " + key);
         }
         try {
             return action.get();
         } finally {
-            DefaultRedisScript<Long> script = new DefaultRedisScript<>(UNLOCK_SCRIPT, Long.class);
-            redisTemplate.execute(script, Collections.singletonList(lockKey), lockValue);
+            redisTemplate.execute(UNLOCK_SCRIPT, Collections.singletonList(lockKey), lockValue);
+            log.debug("Released lock: {}", key);
         }
     }
 }

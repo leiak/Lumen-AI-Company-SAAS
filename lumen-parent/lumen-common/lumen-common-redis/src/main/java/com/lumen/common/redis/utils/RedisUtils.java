@@ -30,8 +30,13 @@ public class RedisUtils {
         return (T) redisTemplate.opsForValue().get(key);
     }
 
+    public <T> T get(String key, Class<T> clazz) {
+        Object v = redisTemplate.opsForValue().get(key);
+        return clazz.isInstance(v) ? clazz.cast(v) : null;
+    }
+
     public Boolean delete(String key) {
-        return redisTemplate.delete(key);
+        return Boolean.TRUE.equals(redisTemplate.delete(key));
     }
 
     public Long delete(Collection<String> keys) {
