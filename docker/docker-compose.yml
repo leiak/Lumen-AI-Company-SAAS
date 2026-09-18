@@ -7,11 +7,11 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: lumen_db
-      TZ: Asia/Shanghai
     ports:
       - "3306:3306"
     volumes:
       - ./mysql-data:/var/lib/mysql
+      # Init SQL runs only on first start (when data dir is empty)
       - ../sql:/docker-entrypoint-initdb.d
     command:
       --character-set-server=utf8mb4

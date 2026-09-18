@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS tenant_package (
     deleted         TINYINT         NOT NULL DEFAULT 0,
     PRIMARY KEY (id),
     UNIQUE KEY uk_package_code (code, deleted)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='套餐定义';
 
 CREATE TABLE IF NOT EXISTS tenant_config (
     id              BIGINT          NOT NULL AUTO_INCREMENT,
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS tenant_config (
     update_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY uk_tenant_config (tenant_id, config_key)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户级配置项';
 
 CREATE TABLE IF NOT EXISTS common_seq (
     seq_name        VARCHAR(50)     NOT NULL,
@@ -76,4 +76,4 @@ CREATE TABLE IF NOT EXISTS common_seq (
     update_by       BIGINT          NOT NULL DEFAULT 0,
     update_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (seq_name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='业务流水号';
