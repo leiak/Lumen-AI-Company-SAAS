@@ -1,5 +1,6 @@
 package com.lumen.auth.mapper;
 
+import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -8,7 +9,17 @@ import org.apache.ibatis.annotations.Mapper;
 
 import java.time.LocalDateTime;
 
+/**
+ * Mapper for {@code sys_user}. The user table itself is tenant-scoped at the row level
+ * (the tenant interceptor rewrites queries to the current tenant), so most default
+ * operations are safe. However, {@link #findByUserId(Long)} looks up by the global
+ * {@code user_id} alone — that lookup must work across tenants (e.g. when the SSO
+ * exchange or MFA step-up flow hands back a userId from a token claim, or when the
+ * MFA flow looks up the user to complete the verify step). The class-level
+ * {@link InterceptorIgnore} mirrors {@code SysUserMfaMapper} and {@code TicketMapper}.
+ */
 @Mapper
+@InterceptorIgnore(tenantLine = "true")
 public interface SysUserMapper extends BaseMapper<SysUser> {
     default SysUser findByTenantAndUsername(Long tenantId, String userName) {
         return selectOne(new LambdaQueryWrapper<SysUser>()
