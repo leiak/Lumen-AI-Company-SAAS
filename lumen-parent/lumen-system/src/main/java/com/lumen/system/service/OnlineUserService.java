@@ -3,6 +3,7 @@ package com.lumen.system.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -29,8 +30,8 @@ public class OnlineUserService {
         List<Map<String, String>> result = new ArrayList<>();
         try {
             ScanOptions opts = ScanOptions.scanOptions().match(REDIS_SESSION_KEY_PREFIX + "*").count(100).build();
-            try (Cursor<byte[]> cursor = stringRedisTemplate.executeWithStickyConnection(
-                    conn -> conn.scan(opts))) {
+            try (Cursor<byte[]> cursor = stringRedisTemplate.execute(
+                    (RedisCallback<Cursor<byte[]>>) conn -> conn.scan(opts))) {
                 int count = 0;
                 while (cursor != null && cursor.hasNext() && count < limit) {
                     byte[] keyBytes = cursor.next();

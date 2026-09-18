@@ -23,7 +23,7 @@ public class ConfigService {
     private final StringRedisTemplate stringRedisTemplate;
 
     public IPage<SysConfig> list(int pageNum, int pageSize, String keyword) {
-        var w = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysConfig>()
+        var w = new LambdaQueryWrapper<SysConfig>()
             .orderByDesc(SysConfig::getConfigId);
         if (keyword != null && !keyword.isBlank()) {
             w.and(q -> q.like(SysConfig::getConfigName, keyword)

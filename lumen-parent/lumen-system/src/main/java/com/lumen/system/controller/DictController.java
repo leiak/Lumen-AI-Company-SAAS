@@ -2,7 +2,6 @@ package com.lumen.system.controller;
 
 import com.lumen.common.core.domain.R;
 import com.lumen.system.entity.SysDictData;
-import com.lumen.system.entity.SysDictType;
 import com.lumen.system.service.DictService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
