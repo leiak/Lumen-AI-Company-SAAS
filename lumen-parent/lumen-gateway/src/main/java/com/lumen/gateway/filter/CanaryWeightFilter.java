@@ -17,7 +17,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -59,6 +58,7 @@ public class CanaryWeightFilter implements GlobalFilter, Ordered {
         String serviceId = originalUri.getHost();
         List<ServiceInstance> instances;
         try {
+            // TODO P2: switch to ReactiveDiscoveryClient or Caffeine cache to avoid blocking on Nacos cache-miss
             instances = discoveryClient.getInstances(serviceId);
         } catch (Exception ex) {
             // Nacos transient errors — let the LB chain continue and 503 if it can't find anything.
@@ -101,7 +101,10 @@ public class CanaryWeightFilter implements GlobalFilter, Ordered {
 
     /**
      * Pick a single instance from the list, honoring the {@code X-Canary} header or, when
-     * absent, distributing proportionally to instance weights.
+     * absent, distributing traffic by the <b>flat-share</b> canary model: the SUM of
+     * {@code canary.weight} across all gray-tagged instances determines the probability of
+     * routing into the gray bucket; once a bucket is chosen, the picker picks uniformly
+     * within it — intra-bucket weights are NOT used to further distribute traffic.
      *
      * <p>Visibility is package-private for direct unit testing of the picker in isolation.</p>
      */
@@ -136,16 +139,22 @@ public class CanaryWeightFilter implements GlobalFilter, Ordered {
             pool = stable.isEmpty() ? gray : stable;
         }
         if (pool.isEmpty()) {
-            // Both buckets empty — shouldn't happen because callers already guarded on isEmpty.
-            return instances.get(0);
+            // Unreachable: callers already guard on `instances.isEmpty()` before invoking,
+            // and gray/stable partition always reproduces the input list, so at least one
+            // bucket must be non-empty. Throw explicitly to make the invariant loud.
+            throw new IllegalStateException("canary: pool unexpectedly empty after filter early-return");
         }
+        // uniform pick within the chosen bucket; intra-bucket weights are not used (see
+        // CanaryConstants.META_WEIGHT Javadoc).
         return pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
     }
 
     /**
-     * Decide whether a request with no header should go to gray. Sum of gray weights is the
-     * probability in percent (capped at 100, floored at 0). Stable instances get equal share
-     * of the remaining probability implicitly because they're the only other option.
+     * Decide whether a request with no header should go to gray. The SUM of
+     * {@code canary.weight} across all instances (gray + stable — stable is always 0)
+     * is the probability in percent (capped at 100, floored at 0). Within the chosen
+     * bucket, traffic is distributed uniformly across instances regardless of individual
+     * weights — see {@link CanaryConstants#META_WEIGHT} for the flat-share model.
      */
     boolean weightedRandomGray(List<ServiceInstance> instances) {
         int total = 0;
@@ -190,11 +199,5 @@ public class CanaryWeightFilter implements GlobalFilter, Ordered {
     @Override
     public int getOrder() {
         return CanaryConstants.FILTER_ORDER;
-    }
-
-    // Visible for tests that exercise the picker with an empty list directly.
-    @SuppressWarnings("unused")
-    static List<ServiceInstance> emptyInstances() {
-        return Collections.emptyList();
     }
 }

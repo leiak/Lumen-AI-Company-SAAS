@@ -10,17 +10,27 @@ a canary rollout — operators control traffic purely via Nacos metadata and req
 
 ## 1. Convention
 
-| Concept                  | How it's expressed                                                                 |
-| ------------------------ | ---------------------------------------------------------------------------------- |
-| A "gray" instance        | Has Nacos instance metadata `canary.weight` with an integer value in `(0, 100]`    |
-| A "stable" instance      | Has `canary.weight` = 0, or no `canary.weight` metadata at all (default = stable) |
-| Pin to gray              | Request header `X-Canary: gray`                                                    |
-| Pin to stable            | Request header `X-Canary: stable`                                                  |
-| Default (no header)      | Weighted random — probability of gray = `sum(weights across gray instances) / 100` |
-| Downstream observability | Request header `X-Canary-Gray: true` (or `false`) is set on the upstream request   |
+| Concept                  | How it's expressed                                                                                              |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| A "gray" instance        | Has Nacos instance metadata `canary.weight` with an integer value in `(0, 100]`                                 |
+| A "stable" instance      | Has `canary.weight` = 0, or no `canary.weight` metadata at all (default = stable)                              |
+| Pin to gray              | Request header `X-Canary: gray`                                                                                 |
+| Pin to stable            | Request header `X-Canary: stable`                                                                               |
+| Default (no header)      | Flat-share weighted random — probability of gray = `sum(canary.weight across gray instances) / 100`            |
+| Downstream observability | Request header `X-Canary-Gray: true` (or `false`) is set on the upstream request                                |
 
 Weights are integer percentages. Values outside `[0, 100]` are clamped. Non-numeric values
 are treated as `0` (stable).
+
+### Flat-share model
+
+The gateway uses a **flat-share** model: the **sum** of `canary.weight` across all gray-tagged
+instances determines the percentage of traffic that lands in the gray bucket. Within the
+chosen bucket, traffic is distributed **uniformly** across instances — individual weights do
+not further bias the pick.
+
+Example: two gray instances with `canary.weight=10` each → `10 + 10 = 20%` gray traffic.
+All gray-tagged instances receive an equal share of that 20%.
 
 ---
 
@@ -29,13 +39,22 @@ are treated as `0` (stable).
 In the Nacos console, on the target service's instance detail page:
 
 1. Edit metadata
-2. Add key `canary.weight` with value `N` (e.g. `10` for 10% canary)
+2. Add key `canary.weight` with value `N` (e.g. `10` for a single gray instance's contribution
+   to the gray share; pair with other gray instances to increase total gray share)
 3. Save. The gateway picks up the new metadata within its discovery refresh window
    (default 30s).
 
-Example — 10% canary on `auth-service`:
+Example — single gray instance on `auth-service` with weight=10 (so total gray share = 10%):
 ```
 instance metadata:
+  canary.weight = 10
+```
+
+Example — two gray instances on `auth-service`, each with weight=10 (so total gray share = 20%):
+```
+instance A metadata:
+  canary.weight = 10
+instance B metadata:
   canary.weight = 10
 ```
 
@@ -46,9 +65,27 @@ The other instances of `auth-service` (without `canary.weight` metadata, or with
 
 ## 3. Rolling Forward / Backward
 
-Forward (increase canary share):
+Forward (increase canary share via the summed-weight model):
+
+Start with two gray instances at weight=5 each (total gray share = 10%):
 ```
-canary.weight = 10   # observe metrics, error rates
+gray instance A: canary.weight = 5
+gray instance B: canary.weight = 5
+```
+Then bump each to weight=10 (total gray share = 20%):
+```
+gray instance A: canary.weight = 10
+gray instance B: canary.weight = 10
+```
+Then weight=25 each (50%), then weight=50 each (100% — full canary, gray is now production):
+```
+gray instance A: canary.weight = 50
+gray instance B: canary.weight = 50
+```
+
+Single-instance recipe (one gray instance at a time):
+```
+canary.weight = 10   # 10% gray total; observe metrics, error rates
 canary.weight = 25
 canary.weight = 50
 canary.weight = 100  # full canary — gray is now the production behavior

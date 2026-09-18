@@ -17,7 +17,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -261,7 +260,6 @@ class CanaryWeightFilterTest {
         ServerWebExchange ex = exchangeWithUri(lbUri);
         // Capture the exchange the chain receives so we can inspect the mutated request.
         ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
-        when(chain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
 
         filter.filter(ex, chain).block();
         verify(chain).filter(captor.capture());
@@ -279,7 +277,6 @@ class CanaryWeightFilterTest {
         URI lbUri = URI.create("lb://svc");
         ServerWebExchange ex = exchangeWithUri(lbUri);
         ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
-        when(chain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
 
         filter.filter(ex, chain).block();
         verify(chain).filter(captor.capture());
@@ -321,9 +318,4 @@ class CanaryWeightFilterTest {
         @Override public Map<String, String> getMetadata() { return metadata; }
         @Override public String getScheme() { return secure ? "https" : "http"; }
     }
-
-    // Used to silence "unused" warnings on the helper class field. The ArrayList import is
-    // also kept available in case future cases need a mutable list builder.
-    @SuppressWarnings("unused")
-    private static final ArrayList<?> UNUSED = new ArrayList<>();
 }
