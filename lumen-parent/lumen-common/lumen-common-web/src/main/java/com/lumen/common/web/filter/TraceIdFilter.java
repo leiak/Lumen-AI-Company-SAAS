@@ -23,7 +23,8 @@ public class TraceIdFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String traceId = request.getHeader(CommonConstants.HEADER_TRACE_ID);
-        if (traceId == null || traceId.isEmpty()) {
+        if (traceId == null || traceId.isEmpty() || traceId.length() > 64
+                || !traceId.matches("[A-Za-z0-9._-]+")) {
             traceId = UUID.randomUUID().toString().replace("-", "");
         }
         MDC.put("traceId", traceId);
