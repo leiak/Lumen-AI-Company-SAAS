@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: auth-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: lumen-public
+        username: lumen
+        password: lumen
+        # Don't fail startup if Nacos is down (dev convenience)
+        fail-fast: false
+        enabled: ${NACOS_ENABLED:true}
