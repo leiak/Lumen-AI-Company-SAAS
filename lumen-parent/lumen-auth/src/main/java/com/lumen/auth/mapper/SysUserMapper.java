@@ -18,6 +18,17 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
             .last("LIMIT 1"));
     }
 
+    /**
+     * 按 userId 查找未删除的用户；供 SSO 兑换时填充 JWT 的 userName/nickName。
+     */
+    default SysUser findByUserId(Long userId) {
+        if (userId == null) return null;
+        return selectOne(new LambdaQueryWrapper<SysUser>()
+            .eq(SysUser::getUserId, userId)
+            .eq(SysUser::getDeleted, 0)
+            .last("LIMIT 1"));
+    }
+
     default void incrFailCount(Long userId) {
         update(null, new LambdaUpdateWrapper<SysUser>()
             .eq(SysUser::getUserId, userId)

@@ -46,6 +46,11 @@
             <artifactId>lumen-common-log</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.lumen</groupId>
+            <artifactId>lumen-common-sso</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
         </dependency>
