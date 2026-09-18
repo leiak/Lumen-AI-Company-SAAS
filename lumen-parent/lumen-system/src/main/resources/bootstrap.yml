@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: system-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: lumen-public
+        username: lumen
+        password: lumen
+        fail-fast: false
