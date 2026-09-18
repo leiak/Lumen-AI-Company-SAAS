@@ -73,10 +73,11 @@ public class AuthController {
     @PostMapping("/logout")
     public R<Void> logout(HttpServletRequest http) {
         UserContext ctx = UserContextHolder.get();
-        if (ctx != null) {
-            loginService.logout(ctx.getUserId(), ctx.getTenantId(), ctx.getTokenId(), http);
-            UserContextHolder.clear();
+        if (ctx == null) {
+            throw new ServiceException(401, "Not authenticated");
         }
+        loginService.logout(ctx.getUserId(), ctx.getTenantId(), ctx.getTokenId(), http);
+        UserContextHolder.clear();
         return R.ok();
     }
 

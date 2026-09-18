@@ -6,7 +6,6 @@ import com.lumen.auth.entity.SysAuthAudit;
 import com.lumen.auth.entity.SysLoginFail;
 import com.lumen.auth.entity.SysUser;
 import com.lumen.auth.entity.SysUserSession;
-import com.lumen.auth.mapper.SysAuthAuditMapper;
 import com.lumen.auth.mapper.SysLoginFailMapper;
 import com.lumen.auth.mapper.SysUserMapper;
 import com.lumen.common.core.exception.ServiceException;
@@ -17,7 +16,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +31,7 @@ public class LoginService {
 
     private final SysUserMapper userMapper;
     private final SysLoginFailMapper loginFailMapper;
-    private final SysAuthAuditMapper authAuditMapper;
+    private final AuthAuditRecorder authAuditRecorder;
     private final SessionService sessionService;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtProperties jwtProperties;
@@ -139,18 +137,9 @@ public class LoginService {
         audit.setDetail(detail);
         audit.setAuditAt(LocalDateTime.now());
         if (asyncAudit) {
-            auditAsync(audit);
+            authAuditRecorder.record(audit);
         } else {
-            authAuditMapper.insert(audit);
-        }
-    }
-
-    @Async
-    public void auditAsync(SysAuthAudit audit) {
-        try {
-            authAuditMapper.insert(audit);
-        } catch (Exception e) {
-            log.warn("audit insert failed: {}", e.getMessage());
+            authAuditRecorder.record(audit);
         }
     }
 

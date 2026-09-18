@@ -49,7 +49,11 @@ public class JwtTokenProvider {
     }
 
     private String generateToken(UserContext ctx, String type, long expireSeconds) {
-        String jti = UUID.randomUUID().toString();
+        // Honor caller's tokenId as jti (e.g. session UUID from auth service).
+        // Fall back to a random UUID for callers that don't care about session correlation.
+        String jti = (ctx.getTokenId() != null && !ctx.getTokenId().isBlank())
+            ? ctx.getTokenId()
+            : UUID.randomUUID().toString();
         Date now = new Date();
         Date exp = new Date(now.getTime() + expireSeconds * 1000);
 
