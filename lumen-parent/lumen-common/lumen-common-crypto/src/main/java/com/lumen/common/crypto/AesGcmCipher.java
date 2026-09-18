@@ -1,8 +1,5 @@
 package com.lumen.common.crypto;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -23,8 +20,6 @@ import java.util.Base64;
  * {@link CryptoAutoConfiguration}, which reads the Base64-encoded key from
  * {@code lumen.security.crypto.key}.</p>
  */
-@Slf4j
-@Component
 public class AesGcmCipher {
 
     public static final int IV_LENGTH = 12;
