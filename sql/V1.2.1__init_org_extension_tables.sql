@@ -1,0 +1,51 @@
+DROP TABLE IF EXISTS sys_post;
+CREATE TABLE sys_post (
+    post_id            BIGINT          NOT NULL AUTO_INCREMENT,
+    tenant_id          BIGINT          NOT NULL DEFAULT 1,
+    post_code          VARCHAR(50)     NOT NULL,
+    post_name          VARCHAR(50)     NOT NULL,
+    post_sort          INT             NOT NULL DEFAULT 0,
+    status             CHAR(1)         NOT NULL DEFAULT '0',
+    remark             VARCHAR(500)    DEFAULT NULL,
+    create_by          BIGINT          NOT NULL DEFAULT 0,
+    create_time        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_by          BIGINT          NOT NULL DEFAULT 0,
+    update_time        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted            TINYINT         NOT NULL DEFAULT 0,
+    PRIMARY KEY (post_id),
+    UNIQUE KEY uk_post_tenant_code (tenant_id, post_code, deleted)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='岗位表';
+
+DROP TABLE IF EXISTS sys_employee;
+CREATE TABLE sys_employee (
+    employee_id        BIGINT          NOT NULL AUTO_INCREMENT,
+    tenant_id          BIGINT          NOT NULL DEFAULT 1,
+    user_id            BIGINT          DEFAULT NULL COMMENT '关联 sys_user.id，可空（员工可能无账号）',
+    employee_no        VARCHAR(50)     NOT NULL COMMENT '工号',
+    name               VARCHAR(50)     NOT NULL,
+    name_pinyin        VARCHAR(100)    DEFAULT NULL,
+    gender             CHAR(1)         DEFAULT '0' COMMENT '0-未知 1-男 2-女',
+    mobile_enc         VARCHAR(500)    DEFAULT NULL COMMENT '手机号加密',
+    email_enc          VARCHAR(500)    DEFAULT NULL COMMENT '邮箱加密',
+    id_card_enc        VARCHAR(500)    DEFAULT NULL COMMENT '身份证加密',
+    birth_date         DATE            DEFAULT NULL,
+    hire_date          DATE            DEFAULT NULL,
+    leave_date         DATE            DEFAULT NULL,
+    dept_id            BIGINT          DEFAULT NULL,
+    post_id            BIGINT          DEFAULT NULL,
+    direct_leader_id   BIGINT          DEFAULT NULL,
+    employee_type      VARCHAR(20)     DEFAULT 'REGULAR' COMMENT 'REGULAR/INTERN/CONSULTANT/PROBATION',
+    employment_status  VARCHAR(20)     DEFAULT 'ACTIVE' COMMENT 'ACTIVE/LEAVE/SUSPENDED/TERMINATED',
+    is_builtin         TINYINT         NOT NULL DEFAULT 0,
+    remark             VARCHAR(500)    DEFAULT NULL,
+    create_by          BIGINT          NOT NULL DEFAULT 0,
+    create_time        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_by          BIGINT          NOT NULL DEFAULT 0,
+    update_time        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted            TINYINT         NOT NULL DEFAULT 0,
+    PRIMARY KEY (employee_id),
+    UNIQUE KEY uk_employee_tenant_no (tenant_id, employee_no, deleted),
+    KEY idx_employee_user (user_id),
+    KEY idx_employee_dept (dept_id),
+    KEY idx_employee_status (employment_status, deleted)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='员工档案';

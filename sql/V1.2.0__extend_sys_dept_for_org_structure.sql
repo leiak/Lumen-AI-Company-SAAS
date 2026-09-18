@@ -1,0 +1,25 @@
+DROP TABLE IF EXISTS sys_dept;
+CREATE TABLE sys_dept (
+    dept_id            BIGINT          NOT NULL AUTO_INCREMENT,
+    tenant_id          BIGINT          NOT NULL DEFAULT 1,
+    parent_id          BIGINT          NOT NULL DEFAULT 0,
+    ancestors          VARCHAR(500)    NOT NULL DEFAULT '0',
+    dept_name          VARCHAR(50)     NOT NULL,
+    dept_category      VARCHAR(50)     DEFAULT NULL,
+    order_num          INT             NOT NULL DEFAULT 0,
+    leader             VARCHAR(50)     DEFAULT NULL,
+    leader_name        VARCHAR(50)     DEFAULT NULL,
+    phone              VARCHAR(20)     DEFAULT NULL,
+    email              VARCHAR(100)    DEFAULT NULL,
+    status             CHAR(1)         NOT NULL DEFAULT '0',
+    is_builtin         TINYINT         NOT NULL DEFAULT 0,
+    remark             VARCHAR(500)    DEFAULT NULL,
+    create_by          BIGINT          NOT NULL DEFAULT 0,
+    create_time        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_by          BIGINT          NOT NULL DEFAULT 0,
+    update_time        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted            TINYINT         NOT NULL DEFAULT 0,
+    PRIMARY KEY (dept_id),
+    KEY idx_dept_parent (parent_id),
+    KEY idx_dept_tenant_status (tenant_id, status, deleted)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='部门表';
