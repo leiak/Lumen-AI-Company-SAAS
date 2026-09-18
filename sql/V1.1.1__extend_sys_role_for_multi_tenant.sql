@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS sys_role_menu;
+DROP TABLE IF EXISTS sys_role_dept;
 DROP TABLE IF EXISTS sys_user_role;
 DROP TABLE IF EXISTS sys_role;
 CREATE TABLE sys_role (
@@ -32,13 +34,15 @@ CREATE TABLE sys_user_role (
 CREATE TABLE sys_role_dept (
     role_id            BIGINT          NOT NULL,
     dept_id            BIGINT          NOT NULL,
-    PRIMARY KEY (role_id, dept_id)
+    PRIMARY KEY (role_id, dept_id),
+    KEY idx_role_dept_dept (dept_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色-部门（自定义 data_scope 用）';
 
 CREATE TABLE sys_role_menu (
     role_id            BIGINT          NOT NULL,
     menu_id            BIGINT          NOT NULL,
-    PRIMARY KEY (role_id, menu_id)
+    PRIMARY KEY (role_id, menu_id),
+    KEY idx_role_menu_menu (menu_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色-菜单';
 
 CREATE TABLE sys_menu (

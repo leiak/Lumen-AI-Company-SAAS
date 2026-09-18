@@ -47,5 +47,7 @@ CREATE TABLE sys_employee (
     UNIQUE KEY uk_employee_tenant_no (tenant_id, employee_no, deleted),
     KEY idx_employee_user (user_id),
     KEY idx_employee_dept (dept_id),
+    KEY idx_employee_post (post_id),
+    KEY idx_employee_leader (direct_leader_id),
     KEY idx_employee_status (employment_status, deleted)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='员工档案';

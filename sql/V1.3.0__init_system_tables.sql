@@ -34,6 +34,7 @@ CREATE TABLE sys_dict_data (
     update_time        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted            TINYINT         NOT NULL DEFAULT 0,
     PRIMARY KEY (dict_code),
+    UNIQUE KEY uk_dict_data_tenant_type_value (tenant_id, dict_type, dict_value, deleted),
     KEY idx_dict_data_type (dict_type, deleted)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='字典数据';
 
@@ -106,6 +107,7 @@ CREATE TABLE sys_oper_log (
     oper_ip            VARCHAR(64)    DEFAULT '',
     oper_param         VARCHAR(2000)   DEFAULT '',
     json_result        VARCHAR(2000)   DEFAULT '',
+    -- status: INT (HTTP-like 0=success 4xx/5xx=fail); differs from sys_user.status CHAR(1) by design
     status             INT             NOT NULL DEFAULT 0,
     error_msg          VARCHAR(2000)   DEFAULT '',
     cost_ms            BIGINT          NOT NULL DEFAULT 0,
