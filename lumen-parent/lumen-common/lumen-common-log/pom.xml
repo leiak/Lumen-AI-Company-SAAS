@@ -5,9 +5,21 @@
         <groupId>com.lumen</groupId>
         <artifactId>lumen-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
+        <relativePath/>
     </parent>
     <artifactId>lumen-common-log</artifactId>
     <name>lumen-common-log</name>
-    <description>STUB — to be implemented</description>
-    <packaging>jar</packaging>
+    <description>日志通用模块</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.lumen</groupId>
+            <artifactId>lumen-common-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>7.4</version>
+        </dependency>
+    </dependencies>
 </project>
