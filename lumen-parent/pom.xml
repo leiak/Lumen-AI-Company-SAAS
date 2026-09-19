@@ -53,6 +53,7 @@
         <module>lumen-system</module>
         <module>lumen-platform</module>
         <module>lumen-org</module>
+        <module>lumen-workflow</module>
     </modules>
 
     <dependencyManagement>
