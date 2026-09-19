@@ -1,0 +1,29 @@
+2026-09-18 18:50:24.726 [background-preinit] INFO  [traceId=] o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
+2026-09-18 18:50:25.784 [main] INFO  [traceId=] c.lumen.gateway.GatewayApplication - The following 1 profile is active: "dev"
+2026-09-18 18:50:27.559 [main] INFO  [traceId=] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 9200 (http)
+2026-09-18 18:50:27.574 [main] INFO  [traceId=] o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-9200"]
+2026-09-18 18:50:27.576 [main] INFO  [traceId=] o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-09-18 18:50:27.577 [main] INFO  [traceId=] o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-09-18 18:50:31.375 [main] INFO  [traceId=] o.s.c.g.r.RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [After]
+2026-09-18 18:50:31.377 [main] INFO  [traceId=] o.s.c.g.r.RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Before]
+2026-09-18 18:50:31.377 [main] INFO  [traceId=] o.s.c.g.r.RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Between]
+2026-09-18 18:50:31.377 [main] INFO  [traceId=] o.s.c.g.r.RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Cookie]
+2026-09-18 18:50:31.377 [main] INFO  [traceId=] o.s.c.g.r.RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Header]
+2026-09-18 18:50:31.377 [main] INFO  [traceId=] o.s.c.g.r.RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Host]
+2026-09-18 18:50:31.377 [main] INFO  [traceId=] o.s.c.g.r.RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Method]
+2026-09-18 18:50:31.379 [main] INFO  [traceId=] o.s.c.g.r.RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Path]
+2026-09-18 18:50:31.379 [main] INFO  [traceId=] o.s.c.g.r.RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Query]
+2026-09-18 18:50:31.379 [main] INFO  [traceId=] o.s.c.g.r.RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [ReadBody]
+2026-09-18 18:50:31.379 [main] INFO  [traceId=] o.s.c.g.r.RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [RemoteAddr]
+2026-09-18 18:50:31.379 [main] INFO  [traceId=] o.s.c.g.r.RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+2026-09-18 18:50:31.379 [main] INFO  [traceId=] o.s.c.g.r.RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Weight]
+2026-09-18 18:50:31.379 [main] INFO  [traceId=] o.s.c.g.r.RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [CloudFoundryRouteService]
+2026-09-18 18:50:31.841 [main] INFO  [traceId=] o.s.b.a.s.r.ReactiveUserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 4da6854a-8e92-4bde-91a2-171adb965c3c
+
+2026-09-18 18:50:32.461 [main] INFO  [traceId=] o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-9200"]
+2026-09-18 18:50:32.580 [main] INFO  [traceId=] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 9200 (http) with context path ''
+2026-09-18 18:50:36.256 [boundedElastic-9] WARN  [traceId=] com.alibaba.nacos.client.naming - out of date data received, old-t: 1789728636235, new-t: 1789728636227
+2026-09-18 18:50:36.258 [boundedElastic-6] WARN  [traceId=] com.alibaba.nacos.client.naming - out of date data received, old-t: 1789728636219, new-t: 1789728636214
+2026-09-18 18:50:36.533 [main] INFO  [traceId=] c.lumen.gateway.GatewayApplication - Started GatewayApplication in 12.671 seconds (process running for 13.292)
