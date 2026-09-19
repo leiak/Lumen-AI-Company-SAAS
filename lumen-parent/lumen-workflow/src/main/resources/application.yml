@@ -46,5 +46,7 @@ logging:
 
 lumen:
   security:
+    crypto:
+      key: ${LUMEN_CRYPTO_KEY:cYNI3uwR+n6jNWMs5TbN/0Jf0Glnr2cmVLfqe7uwZNo=}
     jwt:
       secret: ${LUMEN_JWT_SECRET:dev-only-please-override-in-production-with-a-real-256-bit-secret}

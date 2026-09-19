@@ -59,6 +59,18 @@ spring:
           uri: lb://org-service
           predicates:
             - Path=/org/**
+        - id: workflow-route
+          uri: lb://workflow-service
+          predicates:
+            - Path=/workflow/**
+        - id: file-route
+          uri: lb://file-service
+          predicates:
+            - Path=/file/**
+        - id: message-route
+          uri: lb://message-service
+          predicates:
+            - Path=/message/**
 
         # ----------------------------------------------------------------------
         # Canary routes (commented — uncomment to opt-in to canary for a service).
@@ -80,6 +92,8 @@ spring:
 
 lumen:
   security:
+    crypto:
+      key: ${LUMEN_CRYPTO_KEY:cYNI3uwR+n6jNWMs5TbN/0Jf0Glnr2cmVLfqe7uwZNo=}
     jwt:
       secret: ${LUMEN_JWT_SECRET:dev-only-please-override-in-production-this-is-not-secure-32bytes-minimum-required}
       issuer: lumen

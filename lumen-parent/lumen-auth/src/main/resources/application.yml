@@ -1,5 +1,5 @@
 server:
-  port: 9202
+  port: 9201
 
 spring:
   profiles:
@@ -15,7 +15,7 @@ spring:
         password: lumen
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
-    url: jdbc:mysql://localhost:3306/lumen_db?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://127.0.0.1:3306/lumen_db?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
     password: root123
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -43,6 +43,8 @@ mybatis-plus:
 # Set via env var in production. Dev value is 64+ chars.
 lumen:
   security:
+    crypto:
+      key: ${LUMEN_CRYPTO_KEY:cYNI3uwR+n6jNWMs5TbN/0Jf0Glnr2cmVLfqe7uwZNo=}
     jwt:
       secret: ${LUMEN_JWT_SECRET:dev-only-please-override-in-production-this-is-not-secure-32bytes-minimum-required}
       issuer: lumen

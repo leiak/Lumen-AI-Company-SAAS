@@ -15,7 +15,7 @@ spring:
         password: lumen
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
-    url: jdbc:mysql://localhost:3306/lumen_db?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://127.0.0.1:3306/lumen_db?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
     password: root123
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -51,7 +51,7 @@ logging:
 lumen:
   security:
     crypto:
-      key: ${LUMEN_CRYPTO_KEY:dGVzdC1rZXktMzItYnl0ZXMtZm9yLWRlbHRhMTIzNDU2}
+      key: ${LUMEN_CRYPTO_KEY:cYNI3uwR+n6jNWMs5TbN/0Jf0Glnr2cmVLfqe7uwZNo=}
     jwt:
       secret: ${LUMEN_JWT_SECRET:E1Y+3V/DuSOAApDQtEMAEvqZbTSRefhPXd9NTNW+ujY=}
       issuer: lumen
