@@ -17,7 +17,7 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     url: jdbc:mysql://127.0.0.1:3306/lumen_db?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
-    password: root
+    password: root123
     driver-class-name: com.mysql.cj.jdbc.Driver
   flyway:
     enabled: false   # platform owns migrations
@@ -25,6 +25,7 @@ spring:
     redis:
       host: 127.0.0.1
       port: 6379
+      password: redis123
       timeout: 3s
 
 mybatis-plus:

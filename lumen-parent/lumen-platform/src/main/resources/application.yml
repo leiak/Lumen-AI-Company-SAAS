@@ -49,6 +49,16 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
 
+# JWT secret — required (lumen-common-security rejects "lumen-default-*" in prod).
+# Set via env var in production. Dev value is a Base64-encoded 32-byte key.
+lumen:
+  security:
+    jwt:
+      secret: ${LUMEN_JWT_SECRET:E1Y+3V/DuSOAApDQtEMAEvqZbTSRefhPXd9NTNW+ujY=}
+      issuer: lumen
+      access-expire-seconds: 7200
+      refresh-expire-seconds: 1209600
+
 logging:
   level:
     com.lumen: INFO

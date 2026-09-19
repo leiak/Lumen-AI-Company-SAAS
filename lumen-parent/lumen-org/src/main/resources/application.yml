@@ -52,3 +52,8 @@ lumen:
   security:
     crypto:
       key: ${LUMEN_CRYPTO_KEY:dGVzdC1rZXktMzItYnl0ZXMtZm9yLWRlbHRhMTIzNDU2}
+    jwt:
+      secret: ${LUMEN_JWT_SECRET:E1Y+3V/DuSOAApDQtEMAEvqZbTSRefhPXd9NTNW+ujY=}
+      issuer: lumen
+      access-expire-seconds: 7200
+      refresh-expire-seconds: 1209600
