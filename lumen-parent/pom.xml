@@ -63,6 +63,8 @@
         <module>lumen-procurement</module>
         <module>lumen-payroll</module>
         <module>lumen-sales</module>
+        <module>lumen-inventory</module>
+        <module>lumen-bi</module>
     </modules>
 
     <dependencyManagement>
