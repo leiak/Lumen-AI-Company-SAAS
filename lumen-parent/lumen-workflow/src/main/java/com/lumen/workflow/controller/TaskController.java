@@ -12,7 +12,10 @@ import com.lumen.workflow.entity.WfTask;
 import com.lumen.workflow.entity.WfTaskHistory;
 import com.lumen.workflow.service.TaskService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,13 +23,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/workflow/task")
 @RequiredArgsConstructor
+@Validated
 public class TaskController {
 
     private final TaskService taskService;
 
     @GetMapping("/todo")
-    public R<IPage<WfTask>> todo(@RequestParam(defaultValue = "1") int pageNum,
-                                  @RequestParam(defaultValue = "10") int pageSize) {
+    public R<IPage<WfTask>> todo(@RequestParam(defaultValue = "1") @Min(1) int pageNum,
+                                  @RequestParam(defaultValue = "10") @Min(1) @Max(200) int pageSize) {
         Long uid = UserContextHolder.getUserId();
         if (uid == null) throw new ServiceException(401, "No user context");
         return R.ok(taskService.todoList(uid, pageNum, pageSize));

@@ -7,12 +7,16 @@ import com.lumen.workflow.dto.StartInstanceRequest;
 import com.lumen.workflow.entity.WfInstance;
 import com.lumen.workflow.service.InstanceService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/workflow/instance")
 @RequiredArgsConstructor
+@Validated
 public class InstanceController {
 
     private final InstanceService instanceService;
@@ -29,8 +33,8 @@ public class InstanceController {
     }
 
     @GetMapping("/page")
-    public R<IPage<WfInstance>> page(@RequestParam(defaultValue = "1") int pageNum,
-                                     @RequestParam(defaultValue = "10") int pageSize) {
+    public R<IPage<WfInstance>> page(@RequestParam(defaultValue = "1") @Min(1) int pageNum,
+                                     @RequestParam(defaultValue = "10") @Min(1) @Max(200) int pageSize) {
         return R.ok(instanceService.pageByCurrentUser(pageNum, pageSize));
     }
 

@@ -2,6 +2,7 @@ package com.lumen.workflow.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lumen.common.core.exception.ServiceException;
+import com.lumen.common.security.context.UserContext;
 import com.lumen.common.security.context.UserContextHolder;
 import com.lumen.workflow.entity.WfDefinition;
 import com.lumen.workflow.entity.WfInstance;
@@ -13,13 +14,17 @@ import com.lumen.workflow.mapper.WfTaskHistoryMapper;
 import com.lumen.workflow.mapper.WfTaskMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,8 +56,20 @@ public class EngineService {
     public static final int INSTANCE_STATUS_COMPLETED = 1;
     public static final int INSTANCE_STATUS_CANCELLED = 2;
 
-    private static final Pattern USER_TASK_PATTERN =
-        Pattern.compile("<userTask\\b[^>]*\\bid\\s*=\\s*\"([^\"]+)\"[^>]*\\bname\\s*=\\s*\"([^\"]+)\"");
+    /** Bypass role for super-admins (consistent with {@code lumen-org/EmployeeController}). */
+    public static final String SUPER_ADMIN_ROLE = "super_admin";
+
+    /**
+     * Robust BPMN matcher: accepts {@code <userTask>} with id/name in either order.
+     * Group 1 = id, Group 2 = name (single match per {@code <userTask>}). If a node
+     * is missing an attribute, that group is null.
+     */
+    private static final Pattern USER_TASK_PATTERN = Pattern.compile(
+        "<userTask\\b([^>]*)/?>", Pattern.CASE_INSENSITIVE);
+    private static final Pattern ID_ATTR =
+        Pattern.compile("\\bid\\s*=\\s*\"([^\"]+)\"");
+    private static final Pattern NAME_ATTR =
+        Pattern.compile("\\bname\\s*=\\s*\"([^\"]+)\"");
 
     private final WfDefinitionMapper definitionMapper;
     private final WfInstanceMapper instanceMapper;
@@ -83,25 +100,35 @@ public class EngineService {
         }
 
         // BPMN parsing (留 TODO): find first userTask id; full parser later.
-        UserTaskNode first = extractFirstUserTask(def.getBpmnXml());
-        if (first == null) {
+        List<UserTaskNode> nodes = collectUserTasks(def.getBpmnXml());
+        if (nodes.isEmpty()) {
             throw new ServiceException(400, "BPMN has no userTask: " + defKey);
         }
+        UserTaskNode first = nodes.get(0);
 
-        Long starter = UserContextHolder.getUserId();
-        Long tenantId = UserContextHolder.getTenantId();
+        UserContext ctx = requireUserContext();
+        Long starter = ctx.getUserId();
+        Long tenantId = ctx.getTenantId();
+        if (tenantId == null) {
+            throw new ServiceException(401, "Missing tenant context");
+        }
 
         WfInstance instance = new WfInstance();
         instance.setDefinitionId(def.getId());
         instance.setDefKey(def.getDefKey());
         instance.setBusinessKey(businessKey);
-        instance.setTenantId(tenantId != null ? tenantId : 0L);
+        instance.setTenantId(tenantId);
         instance.setStatus(INSTANCE_STATUS_RUNNING);
         instance.setCurrentNodeKey(first.id);
         instance.setVariables(variables != null ? variables : new HashMap<>());
         instance.setStarter(starter != null ? starter : 0L);
         instance.setStartTime(LocalDateTime.now());
-        instanceMapper.insert(instance);
+        try {
+            instanceMapper.insert(instance);
+        } catch (DuplicateKeyException ex) {
+            // Unique (business_key, deleted) index — concurrent inserts race here.
+            throw new ServiceException(409, "Active instance exists for businessKey=" + businessKey, ex);
+        }
 
         WfTask firstTask = new WfTask();
         firstTask.setInstanceId(instance.getId());
@@ -133,6 +160,10 @@ public class EngineService {
             throw new ServiceException(409, "Task already completed: " + taskId);
         }
 
+        // Authorization: must be assignee / candidate user / candidate role (or super_admin).
+        UserContext ctx = requireUserContext();
+        assertCanActOnTask(task, ctx);
+
         WfInstance instance = instanceMapper.selectById(task.getInstanceId());
         if (instance == null) {
             throw new ServiceException(404, "Instance not found: " + task.getInstanceId());
@@ -146,7 +177,7 @@ public class EngineService {
             throw new ServiceException(404, "Definition not found: " + instance.getDefinitionId());
         }
 
-        Long operator = UserContextHolder.getUserId();
+        Long operator = ctx.getUserId();
         Long operatorOrZero = operator != null ? operator : 0L;
 
         // 1) Write history first — preserves the audit trail even if subsequent steps fail
@@ -160,7 +191,9 @@ public class EngineService {
         history.setOperatedTime(LocalDateTime.now());
         taskHistoryMapper.insert(history);
 
-        // 2) Mark the current task with the action-specific status
+        // 2) Mark the current task with the action-specific status.
+        //    updateById is guarded by @Version (optimistic lock) — concurrent done
+        //    calls collide with affected_rows=0 → throws OptimisticLockingFailureException.
         int newTaskStatus = switch (action) {
             case ACTION_DONE -> TASK_STATUS_DONE;
             case ACTION_TRANSFER -> TASK_STATUS_TRANSFER;
@@ -188,6 +221,57 @@ public class EngineService {
     }
 
     // ---------------------------------------------------------------
+    // Authorization helpers
+    // ---------------------------------------------------------------
+
+    /**
+     * Returns the current user context, throwing 401 if missing.
+     */
+    public UserContext requireUserContext() {
+        UserContext ctx = UserContextHolder.get();
+        if (ctx == null) {
+            throw new ServiceException(401, "No user context");
+        }
+        return ctx;
+    }
+
+    /**
+     * Asserts that the calling user is allowed to act on the given task.
+     * Bypassed for super_admin (consistent with {@code lumen-org/EmployeeController}).
+     */
+    public void assertCanActOnTask(WfTask task, UserContext ctx) {
+        Set<String> userRoles = ctx.getRoles() == null ? Collections.emptySet() : ctx.getRoles();
+        if (userRoles.contains(SUPER_ADMIN_ROLE)) {
+            return;
+        }
+        Long userId = ctx.getUserId();
+        boolean isAssignee = userId != null && userId.equals(task.getAssignee());
+        boolean isCandidateUser = task.getCandidateUsers() != null
+            && userId != null
+            && task.getCandidateUsers().contains(userId);
+        boolean isCandidateRole = task.getCandidateRoles() != null
+            && !Collections.disjoint(task.getCandidateRoles(), userRoles);
+        if (!isAssignee && !isCandidateUser && !isCandidateRole) {
+            throw new ServiceException(403, "Not authorized to act on this task");
+        }
+    }
+
+    /**
+     * Asserts that the calling user is allowed to cancel the given instance.
+     * Bypassed for super_admin.
+     */
+    public void assertCanCancel(WfInstance instance, UserContext ctx) {
+        Set<String> userRoles = ctx.getRoles() == null ? Collections.emptySet() : ctx.getRoles();
+        if (userRoles.contains(SUPER_ADMIN_ROLE)) {
+            return;
+        }
+        Long userId = ctx.getUserId();
+        if (userId == null || !userId.equals(instance.getStarter())) {
+            throw new ServiceException(403, "Only starter can cancel instance");
+        }
+    }
+
+    // ---------------------------------------------------------------
     // Action handlers
     // ---------------------------------------------------------------
 
@@ -209,6 +293,10 @@ public class EngineService {
             throw new ServiceException(400, "transfer requires toUserId");
         }
         Long toUserId = ((Number) params.get("toUserId")).longValue();
+        if (toUserId == null || toUserId <= 0) {
+            throw new ServiceException(400, "transfer toUserId must be positive");
+        }
+        // TODO: cross-tenant validation needs auth-service integration; out of scope for P3.
         WfTask newTask = cloneForNewAssignee(source, toUserId);
         newTask.setStatus(TASK_STATUS_TODO);
         taskMapper.insert(newTask);
@@ -219,12 +307,22 @@ public class EngineService {
             throw new ServiceException(400, "addSign requires userIds");
         }
         @SuppressWarnings("unchecked")
-        List<Number> userIds = (List<Number>) params.get("userIds");
-        if (userIds == null || userIds.isEmpty()) {
+        List<Number> raw = (List<Number>) params.get("userIds");
+        if (raw == null || raw.isEmpty()) {
             throw new ServiceException(400, "addSign userIds must not be empty");
         }
-        for (Number u : userIds) {
-            WfTask t = cloneForNewAssignee(source, u.longValue());
+        // Dedupe via LinkedHashSet to preserve order.
+        Set<Long> userIds = new LinkedHashSet<>();
+        for (Number n : raw) {
+            if (n != null) {
+                userIds.add(n.longValue());
+            }
+        }
+        if (userIds.isEmpty()) {
+            throw new ServiceException(400, "addSign userIds must not be empty");
+        }
+        for (Long uid : userIds) {
+            WfTask t = cloneForNewAssignee(source, uid);
             t.setStatus(TASK_STATUS_TODO);
             taskMapper.insert(t);
         }
@@ -278,12 +376,12 @@ public class EngineService {
     // ---------------------------------------------------------------
 
     /** Lightweight value object holding an extracted userTask. */
-    private static final class UserTaskNode {
-        final String id;
-        final String name;
-        final int order;
+    public static final class UserTaskNode {
+        public final String id;
+        public final String name;
+        public final int order;
 
-        UserTaskNode(String id, String name, int order) {
+        public UserTaskNode(String id, String name, int order) {
             this.id = id;
             this.name = name;
             this.order = order;
@@ -291,7 +389,8 @@ public class EngineService {
     }
 
     private UserTaskNode extractFirstUserTask(String bpmnXml) {
-        return collectUserTasks(bpmnXml).stream().findFirst().orElse(null);
+        List<UserTaskNode> all = collectUserTasks(bpmnXml);
+        return all.isEmpty() ? null : all.get(0);
     }
 
     private UserTaskNode extractUserTaskById(String bpmnXml, String nodeId) {
@@ -308,6 +407,19 @@ public class EngineService {
      */
     private UserTaskNode findNextUserTask(String bpmnXml, String currentNodeKey) {
         List<UserTaskNode> nodes = collectUserTasks(bpmnXml);
+        // Defensive sanity check — surface an error if the persisted currentNodeKey
+        // is not present in the BPMN (would otherwise silently return null and close
+        // the instance as completed).
+        if (currentNodeKey != null && !currentNodeKey.isEmpty()) {
+            boolean found = false;
+            for (UserTaskNode n : nodes) {
+                if (currentNodeKey.equals(n.id)) { found = true; break; }
+            }
+            if (!found) {
+                throw new ServiceException(500,
+                    "currentNodeKey=" + currentNodeKey + " not present in BPMN userTask list");
+            }
+        }
         for (int i = 0; i < nodes.size(); i++) {
             if (currentNodeKey.equals(nodes.get(i).id)) {
                 return (i + 1 < nodes.size()) ? nodes.get(i + 1) : null;
@@ -316,15 +428,28 @@ public class EngineService {
         return null;
     }
 
-    private List<UserTaskNode> collectUserTasks(String bpmnXml) {
+    /**
+     * Extracts all userTask nodes from the BPMN XML, in document order, tolerating
+     * {@code id} / {@code name} attribute order (real BPMN allows either).
+     */
+    public List<UserTaskNode> collectUserTasks(String bpmnXml) {
         if (bpmnXml == null || bpmnXml.isEmpty()) return List.of();
         Matcher m = USER_TASK_PATTERN.matcher(bpmnXml);
+        List<UserTaskNode> out = new java.util.ArrayList<>();
         int order = 0;
-        java.util.List<UserTaskNode> out = new java.util.ArrayList<>();
         while (m.find()) {
-            out.add(new UserTaskNode(m.group(1), m.group(2), order++));
+            String attrs = m.group(1);
+            String id = matchAttr(ID_ATTR, attrs);
+            String name = matchAttr(NAME_ATTR, attrs);
+            out.add(new UserTaskNode(id, name, order++));
         }
         return out;
+    }
+
+    private static String matchAttr(Pattern p, String attrs) {
+        if (attrs == null) return null;
+        Matcher m = p.matcher(attrs);
+        return m.find() ? m.group(1) : null;
     }
 
     // ---------------------------------------------------------------

@@ -8,6 +8,7 @@ import com.lumen.workflow.entity.WfDefinition;
 import com.lumen.workflow.mapper.WfDefinitionMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,7 +65,12 @@ public class DefinitionService {
         toCreate.setCategory(req.getCategory());
         toCreate.setBpmnXml(req.getBpmnXml());
         toCreate.setStatus(STATUS_DRAFT);
-        definitionMapper.insert(toCreate);
+        try {
+            definitionMapper.insert(toCreate);
+        } catch (DuplicateKeyException ex) {
+            // Two concurrent creates with the same defKey both computed the same nextVersion.
+            throw new ServiceException(409, "Definition version conflict", ex);
+        }
         log.info("Created definition id={} defKey={} version={}",
             toCreate.getId(), toCreate.getDefKey(), toCreate.getVersion());
         return toCreate;

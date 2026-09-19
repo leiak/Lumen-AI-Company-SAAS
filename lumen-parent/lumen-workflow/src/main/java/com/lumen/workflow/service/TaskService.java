@@ -6,8 +6,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lumen.common.core.exception.ServiceException;
 import com.lumen.common.security.context.UserContext;
 import com.lumen.common.security.context.UserContextHolder;
+import com.lumen.workflow.entity.WfInstance;
 import com.lumen.workflow.entity.WfTask;
 import com.lumen.workflow.entity.WfTaskHistory;
+import com.lumen.workflow.mapper.WfInstanceMapper;
 import com.lumen.workflow.mapper.WfTaskHistoryMapper;
 import com.lumen.workflow.mapper.WfTaskMapper;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +19,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +31,7 @@ public class TaskService {
 
     private final WfTaskMapper taskMapper;
     private final WfTaskHistoryMapper taskHistoryMapper;
+    private final WfInstanceMapper instanceMapper;
     private final EngineService engineService;
 
     /**
@@ -89,7 +91,25 @@ public class TaskService {
         return ctx == null || ctx.getRoles() == null ? Collections.emptySet() : ctx.getRoles();
     }
 
+    /**
+     * History for an instance, tenant-scoped via the parent instance.
+     * Returns 404 (not 403) on tenant mismatch to avoid existence disclosure.
+     */
     public List<WfTaskHistory> history(Long instanceId) {
+        WfInstance instance = instanceMapper.selectById(instanceId);
+        if (instance == null) {
+            throw new ServiceException(404, "Instance not found: " + instanceId);
+        }
+        UserContext ctx = UserContextHolder.get();
+        if (ctx == null) throw new ServiceException(401, "No user context");
+        Set<String> roles = ctx.getRoles();
+        boolean isSuperAdmin = roles != null && roles.contains(EngineService.SUPER_ADMIN_ROLE);
+        if (!isSuperAdmin) {
+            Long ctxTenant = ctx.getTenantId();
+            if (ctxTenant == null || !ctxTenant.equals(instance.getTenantId())) {
+                throw new ServiceException(404, "Instance not found: " + instanceId);
+            }
+        }
         return taskHistoryMapper.listByInstanceId(instanceId);
     }
 
@@ -98,7 +118,9 @@ public class TaskService {
     }
 
     public void transfer(Long taskId, Long toUserId, String comment) {
-        if (toUserId == null) throw new ServiceException(400, "toUserId is required");
+        if (toUserId == null || toUserId <= 0) {
+            throw new ServiceException(400, "toUserId is required and must be positive");
+        }
         Map<String, Object> params = new HashMap<>();
         params.put("toUserId", toUserId);
         engineService.completeTask(taskId, EngineService.ACTION_TRANSFER, comment, params);
@@ -108,8 +130,13 @@ public class TaskService {
         if (userIds == null || userIds.isEmpty()) {
             throw new ServiceException(400, "userIds must not be empty");
         }
+        // Dedupe at the service boundary to avoid duplicate clone tasks.
+        List<Long> deduped = new ArrayList<>(new java.util.LinkedHashSet<>(userIds));
+        if (deduped.isEmpty()) {
+            throw new ServiceException(400, "userIds must not be empty");
+        }
         Map<String, Object> params = new HashMap<>();
-        params.put("userIds", new ArrayList<>(userIds));
+        params.put("userIds", deduped);
         engineService.completeTask(taskId, EngineService.ACTION_ADD_SIGN, comment, params);
     }
 
@@ -127,13 +154,5 @@ public class TaskService {
      */
     public WfTask findOpenTask(Long taskId) {
         return taskMapper.selectById(taskId);
-    }
-
-    /**
-     * Defensive unused helper to keep Spotbugs quiet about HashSet import in callers.
-     */
-    @SuppressWarnings("unused")
-    private static Set<Long> uniq(List<Long> xs) {
-        return xs == null ? new HashSet<>() : new HashSet<>(xs);
     }
 }

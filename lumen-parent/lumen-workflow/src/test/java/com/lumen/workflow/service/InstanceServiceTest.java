@@ -116,7 +116,13 @@ class InstanceServiceTest {
         WfInstance instance = new WfInstance();
         instance.setId(42L);
         instance.setStatus(EngineService.INSTANCE_STATUS_RUNNING);
+        instance.setTenantId(TID);
+        instance.setStarter(UID);
         when(instanceMapper.selectById(42L)).thenReturn(instance);
+
+        // Stub the new auth helpers to no-op for this happy path.
+        UserContext ctx = UserContextHolder.get();
+        when(engineService.requireUserContext()).thenReturn(ctx);
 
         // The engine mutates the instance to CANCELLED — mirror that here.
         doAnswer(inv -> {
@@ -138,6 +144,8 @@ class InstanceServiceTest {
         WfInstance instance = new WfInstance();
         instance.setId(42L);
         instance.setStatus(EngineService.INSTANCE_STATUS_COMPLETED);
+        instance.setTenantId(TID);
+        instance.setStarter(UID);
         when(instanceMapper.selectById(42L)).thenReturn(instance);
 
         ServiceException ex = assertThrows(ServiceException.class,
@@ -151,6 +159,8 @@ class InstanceServiceTest {
         WfInstance instance = new WfInstance();
         instance.setId(42L);
         instance.setStatus(EngineService.INSTANCE_STATUS_CANCELLED);
+        instance.setTenantId(TID);
+        instance.setStarter(UID);
         when(instanceMapper.selectById(42L)).thenReturn(instance);
 
         ServiceException ex = assertThrows(ServiceException.class,
@@ -164,5 +174,42 @@ class InstanceServiceTest {
         ServiceException ex = assertThrows(ServiceException.class,
             () -> instanceService.cancel(999L, "missing"));
         assertEquals(404, ex.getCode());
+    }
+
+    @Test
+    void cancel_wrongTenant_returns404NotForbidden() {
+        // Cross-tenant attempt must surface as 404 to avoid existence disclosure.
+        WfInstance instance = new WfInstance();
+        instance.setId(42L);
+        instance.setStatus(EngineService.INSTANCE_STATUS_RUNNING);
+        instance.setTenantId(2L); // different tenant
+        instance.setStarter(UID);
+        when(instanceMapper.selectById(42L)).thenReturn(instance);
+
+        ServiceException ex = assertThrows(ServiceException.class,
+            () -> instanceService.cancel(42L, "x"));
+        assertEquals(404, ex.getCode());
+        verify(engineService, never()).closeInstanceCancelled(any(), any());
+    }
+
+    @Test
+    void cancel_wrongStarter_throws403() {
+        // Same tenant, different starter — must 403.
+        WfInstance instance = new WfInstance();
+        instance.setId(42L);
+        instance.setStatus(EngineService.INSTANCE_STATUS_RUNNING);
+        instance.setTenantId(TID);
+        instance.setStarter(999L); // not the current user
+        when(instanceMapper.selectById(42L)).thenReturn(instance);
+
+        UserContext ctx = UserContextHolder.get();
+        when(engineService.requireUserContext()).thenReturn(ctx);
+        doThrow(new ServiceException(403, "Only starter can cancel instance"))
+            .when(engineService).assertCanCancel(eq(instance), eq(ctx));
+
+        ServiceException ex = assertThrows(ServiceException.class,
+            () -> instanceService.cancel(42L, "x"));
+        assertEquals(403, ex.getCode());
+        verify(engineService, never()).closeInstanceCancelled(any(), any());
     }
 }

@@ -3,8 +3,10 @@ package com.lumen.workflow.service;
 import com.lumen.common.core.exception.ServiceException;
 import com.lumen.common.security.context.UserContext;
 import com.lumen.common.security.context.UserContextHolder;
+import com.lumen.workflow.entity.WfInstance;
 import com.lumen.workflow.entity.WfTask;
 import com.lumen.workflow.entity.WfTaskHistory;
+import com.lumen.workflow.mapper.WfInstanceMapper;
 import com.lumen.workflow.mapper.WfTaskHistoryMapper;
 import com.lumen.workflow.mapper.WfTaskMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -30,6 +32,7 @@ class TaskServiceTest {
 
     @Mock private WfTaskMapper taskMapper;
     @Mock private WfTaskHistoryMapper taskHistoryMapper;
+    @Mock private WfInstanceMapper instanceMapper;
     @Mock private EngineService engineService;
 
     @InjectMocks private TaskService taskService;
@@ -145,6 +148,11 @@ class TaskServiceTest {
 
     @Test
     void history_returnsMappedList() {
+        WfInstance instance = new WfInstance();
+        instance.setId(99L);
+        instance.setTenantId(TID);
+        when(instanceMapper.selectById(99L)).thenReturn(instance);
+
         WfTaskHistory t = new WfTaskHistory();
         t.setId(1L);
         t.setInstanceId(99L);
@@ -156,6 +164,27 @@ class TaskServiceTest {
         assertEquals(1, out.size());
         assertEquals("done", out.get(0).getAction());
         verify(taskHistoryMapper).listByInstanceId(99L);
+    }
+
+    @Test
+    void history_crossTenant_returns404NotForbidden() {
+        WfInstance instance = new WfInstance();
+        instance.setId(99L);
+        instance.setTenantId(2L); // different tenant
+        when(instanceMapper.selectById(99L)).thenReturn(instance);
+
+        ServiceException ex = assertThrows(ServiceException.class,
+            () -> taskService.history(99L));
+        assertEquals(404, ex.getCode());
+        verify(taskHistoryMapper, never()).listByInstanceId(any());
+    }
+
+    @Test
+    void history_instanceNotFound_throws404() {
+        when(instanceMapper.selectById(99L)).thenReturn(null);
+        ServiceException ex = assertThrows(ServiceException.class,
+            () -> taskService.history(99L));
+        assertEquals(404, ex.getCode());
     }
 
     @Test

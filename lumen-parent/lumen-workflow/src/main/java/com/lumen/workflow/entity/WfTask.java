@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.lumen.common.mybatis.entity.BaseEntity;
 import lombok.Data;
@@ -37,4 +38,11 @@ public class WfTask extends BaseEntity {
     private LocalDateTime dueTime;
     private LocalDateTime completeTime;
     private String comment;
+
+    /**
+     * Optimistic-lock version. Updated by MyBatis-Plus when this row is written via
+     * {@code updateById} — concurrent writers collide with affected_rows=0.
+     */
+    @Version
+    private Integer version;
 }
