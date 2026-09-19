@@ -44,8 +44,12 @@ public class CryptoAutoConfiguration {
         return cipher;
     }
 
-    @Bean
-    public EncryptedStringTypeHandler encryptedStringTypeHandler(AesGcmCipher cipher) {
-        return new EncryptedStringTypeHandler(cipher);
-    }
+    // NOTE: not exposed as a Spring @Bean — registering EncryptedStringTypeHandler as a
+    // bean causes MyBatis-Plus auto-detection to register it as the *default* TypeHandler
+    // for every String column (replacing the built-in StringTypeHandler). That silently
+    // encrypts every string parameter going through MyBatis, which breaks user-name
+    // lookups and any other plain-text query. Entities that need field-level encryption
+    // must reference this class explicitly via @TableField(typeHandler = ...); MyBatis-Plus
+    // will instantiate it on demand. The AesGcmCipher bean above is the only required
+    // Spring component for this module.
 }
