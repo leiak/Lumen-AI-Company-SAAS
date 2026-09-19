@@ -58,6 +58,8 @@
         <module>lumen-message</module>
         <module>lumen-assets</module>
         <module>lumen-contract</module>
+        <module>lumen-hr</module>
+        <module>lumen-finance</module>
     </modules>
 
     <dependencyManagement>
