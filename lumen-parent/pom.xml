@@ -54,6 +54,7 @@
         <module>lumen-platform</module>
         <module>lumen-org</module>
         <module>lumen-workflow</module>
+        <module>lumen-file</module>
     </modules>
 
     <dependencyManagement>
