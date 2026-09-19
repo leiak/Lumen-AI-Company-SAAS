@@ -65,6 +65,7 @@
         <module>lumen-sales</module>
         <module>lumen-inventory</module>
         <module>lumen-bi</module>
+        <module>lumen-mobile</module>
     </modules>
 
     <dependencyManagement>
