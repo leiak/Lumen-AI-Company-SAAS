@@ -60,6 +60,9 @@
         <module>lumen-contract</module>
         <module>lumen-hr</module>
         <module>lumen-finance</module>
+        <module>lumen-procurement</module>
+        <module>lumen-payroll</module>
+        <module>lumen-sales</module>
     </modules>
 
     <dependencyManagement>
