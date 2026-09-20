@@ -71,6 +71,48 @@ spring:
           uri: lb://message-service
           predicates:
             - Path=/message/**
+        # P4 business modules (10 routes added for hr/finance/assets/contract/
+        # procurement/sales/payroll/inventory/bi/mobile)
+        - id: hr-route
+          uri: lb://hr-service
+          predicates:
+            - Path=/hr/**
+        - id: finance-route
+          uri: lb://finance-service
+          predicates:
+            - Path=/fin/**
+        - id: assets-route
+          uri: lb://assets-service
+          predicates:
+            - Path=/assets/**
+        - id: contract-route
+          uri: lb://contract-service
+          predicates:
+            - Path=/contract/**
+        - id: procurement-route
+          uri: lb://procurement-service
+          predicates:
+            - Path=/proc/**
+        - id: sales-route
+          uri: lb://sales-service
+          predicates:
+            - Path=/sal/**
+        - id: payroll-route
+          uri: lb://payroll-service
+          predicates:
+            - Path=/pay/**
+        - id: inventory-route
+          uri: lb://inventory-service
+          predicates:
+            - Path=/inv/**
+        - id: bi-route
+          uri: lb://bi-service
+          predicates:
+            - Path=/bi/**
+        - id: mobile-route
+          uri: lb://mobile-service
+          predicates:
+            - Path=/mobile/**
 
         # ----------------------------------------------------------------------
         # Canary routes (commented — uncomment to opt-in to canary for a service).

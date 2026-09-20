@@ -40,7 +40,11 @@ public class CryptoAutoConfiguration {
                     + AesGcmCipher.KEY_LENGTH_BYTES + " bytes, got " + keyBytes.length);
         }
         AesGcmCipher cipher = new AesGcmCipher(keyBytes);
-        log.info("AesGcmCipher initialized ({} bytes key)", keyBytes.length);
+        // Publish the cipher to the static slot in EncryptedStringTypeHandler so that
+        // MyBatis-reflected handler instances (created on first @TableField(typeHandler=...)
+        // field access) observe a non-null cipher.
+        EncryptedStringTypeHandler.setCipher(cipher);
+        log.info("AesGcmCipher initialized ({} bytes key); EncryptedStringTypeHandler wired", keyBytes.length);
         return cipher;
     }
 
