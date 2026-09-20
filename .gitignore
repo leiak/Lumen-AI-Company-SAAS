@@ -1,0 +1,18 @@
+# Runtime logs / data — never commit
+*.log
+logs/
+derby.log
+
+# Redis runtime snapshot
+docker/redis-data/dump.rdb
+
+# Nacos derby db file (lives next to nacos dir if mounted here)
+nacos/data/derby-data/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+
+# Maven (kept ignored here as well as in submodule-level .gitignore)
+target/
+build/
