@@ -77,6 +77,12 @@ public class JwtTokenProvider {
         claims.put("nname", ctx.getNickName());
         claims.put("did", ctx.getDeptId());
         claims.put("ds", ctx.getDataScope());
+        // Roles are required for Spring Security @PreAuthorize("hasRole(...)").
+        // Serialize as List<String> so jackson writes a JSON array, which Spring's
+        // JwtGrantedAuthoritiesConverter can consume on the gateway side.
+        if (ctx.getRoles() != null && !ctx.getRoles().isEmpty()) {
+            claims.put("roles", new java.util.ArrayList<>(ctx.getRoles()));
+        }
         if (mfaFlag != null) {
             claims.put("mfa_token", mfaFlag);
         }
@@ -120,6 +126,14 @@ public class JwtTokenProvider {
         ctx.setDeptId(c.get("did", Long.class));
         ctx.setDataScope(c.get("ds", Integer.class));
         ctx.setTokenId(c.getId());
+        // Roles are read back from JWT so controllers can use hasRole(...) checks
+        // without re-querying the DB on every request.
+        Object rolesRaw = c.get("roles");
+        if (rolesRaw instanceof java.util.Collection<?> coll) {
+            java.util.Set<String> roles = new java.util.HashSet<>();
+            for (Object o : coll) if (o != null) roles.add(o.toString());
+            ctx.setRoles(roles);
+        }
         return ctx;
     }
 

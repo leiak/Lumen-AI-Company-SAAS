@@ -172,12 +172,17 @@ public class LoginService {
             "LOGIN", 1, ip, ua, "ok");
 
         // Build an access token for the response (session_id = JWT jti is bound in createSession)
+        // Roles are mandatory: Spring Security @PreAuthorize hasRole(...) depends on the JWT
+        // carrying them. Without this, every controller annotated with @PreAuthorize returns
+        // 500 (AccessDeniedException wrapped by GlobalExceptionAdvice).
+        java.util.Set<String> roles = new java.util.HashSet<>(userMapper.findRoleKeysByUserId(user.getUserId()));
         UserContext accessCtx = UserContext.builder()
             .userId(user.getUserId())
             .tenantId(user.getTenantId())
             .userName(user.getUserName())
             .nickName(user.getNickName())
             .tokenId(session.getSessionId())
+            .roles(roles)
             .build();
         String accessToken = jwtTokenProvider.generateAccessToken(accessCtx);
 

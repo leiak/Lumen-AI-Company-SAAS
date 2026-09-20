@@ -18,7 +18,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -73,9 +75,21 @@ public class JwtAuthGlobalFilter implements GlobalFilter, Ordered {
             .header("X-Tenant-Id", String.valueOf(tid))
             .header("X-User-Name", String.valueOf(claims.get("uname", String.class)))
             .header("X-Session-Id", claims.getId())
+            // Roles are required downstream — Spring Security @PreAuthorize hasRole(...)
+            // checks Authentication.getAuthorities(), which UserContextResolverFilter
+            // rebuilds from this header. Comma-separated so HTTP headers stay simple.
+            .header("X-Roles", joinRoles(claims.get("roles", Collection.class)))
             .build();
 
         return chain.filter(exchange.mutate().request(mutated).build());
+    }
+
+    private static String joinRoles(Collection<?> roles) {
+        if (roles == null || roles.isEmpty()) return "";
+        return roles.stream()
+            .filter(r -> r != null && !r.toString().isBlank())
+            .map(Object::toString)
+            .collect(Collectors.joining(","));
     }
 
     private Mono<Void> unauthorized(ServerWebExchange exchange, String msg) {
