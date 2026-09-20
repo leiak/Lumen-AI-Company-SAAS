@@ -1,66 +1,440 @@
-version: '3.8'
+# =============================================================================
+# Lumen stack — full Docker Compose.
+#
+# 21 services on a single bridge network (lumen-net):
+#   * 3 infra:  mysql, redis, nacos (single-node, MySQL-backed)
+#   * 18 app:   gateway, auth, platform, system, org, workflow, file, message,
+#               hr, finance, assets, contract, procurement, sales, payroll,
+#               inventory, bi, mobile
+#   * 1 edge:   portal (nginx serving Vue 3 + reverse-proxy /api -> gateway)
+#
+# First-run setup:
+#   1. bash docker/build-images.sh         # build all 18 lumen images
+#   2. docker compose -f docker/docker-compose.yml up -d
+#   3. docker compose -f docker/docker-compose.yml ps
+#   4. tail -f docker/logs/*.log           # per-service logs live there
+#
+# Override any var via .env.local (cp .env .env.local and edit).
+# =============================================================================
+name: lumen
+
+x-lumen-common: &lumen-common
+  networks: [lumen-net]
+  restart: unless-stopped
+  environment: &lumen-env
+    # All lumen services point at compose-network DNS names, NOT host ports.
+    # Nacos is the source of truth for most config (datasource, redis, etc.),
+    # but these four are the discovery + auth bootstrap every service needs.
+    SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+    SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
+    SPRING_CLOUD_NACOS_DISCOVERY_NAMESPACE: lumen-public
+    SPRING_CLOUD_NACOS_CONFIG_NAMESPACE: lumen-public
+    SPRING_CLOUD_NACOS_DISCOVERY_USERNAME: lumen
+    SPRING_CLOUD_NACOS_DISCOVERY_PASSWORD: lumen
+    SPRING_CLOUD_NACOS_CONFIG_USERNAME: lumen
+    SPRING_CLOUD_NACOS_CONFIG_PASSWORD: lumen
+    # Container-internal DNS for direct JDBC (used by application.yml `url` overrides)
+    SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/lumen_db?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    SPRING_DATASOURCE_USERNAME: root
+    SPRING_DATASOURCE_PASSWORD: root
+    SPRING_DATA_REDIS_HOST: redis
+    SPRING_DATA_REDIS_PORT: 6379
+    SPRING_DATA_REDIS_PASSWORD: redis123
+    TZ: Asia/Shanghai
+  extra_hosts:
+    # host.docker.internal only matters on Linux/Mac; harmless on Windows Docker Desktop.
+    - "host.docker.internal:host-gateway"
+
 services:
+
+  # ---------------------------------------------------------------------------
+  # Infrastructure
+  # ---------------------------------------------------------------------------
   mysql:
     image: mysql:8.0
     container_name: lumen-mysql
-    restart: always
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: lumen_db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      TZ: Asia/Shanghai
     ports:
-      - "3306:3306"
+      - "${MYSQL_PORT}:3306"
     volumes:
-      - ./mysql-data:/var/lib/mysql
-      # Init SQL runs only on first start (when data dir is empty)
-      - ../sql:/docker-entrypoint-initdb.d
+      - mysql-data:/var/lib/mysql
+      - ./init-sql:/docker-entrypoint-initdb.d:ro
     command:
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --default-time-zone=+08:00
-      --max_connections=500
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+08:00
+      - --max_connections=500
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
+    networks:
+      - lumen-net
 
   redis:
     image: redis:7-alpine
     container_name: lumen-redis
-    restart: always
+    restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:6379"
     volumes:
-      - ./redis-data:/data
-    command: redis-server --appendonly yes --requirepass redis123
+      - redis-data:/data
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "redis123", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - lumen-net
 
   nacos:
     image: nacos/nacos-server:v2.3.2
     container_name: lumen-nacos
-    restart: always
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
     environment:
       MODE: standalone
       JVM_XMS: 512m
       JVM_XMX: 512m
       JVM_XMN: 256m
+      TZ: Asia/Shanghai
       SPRING_DATASOURCE_PLATFORM: mysql
-      MYSQL_SERVICE_HOST: host.docker.internal
+      MYSQL_SERVICE_HOST: mysql
       MYSQL_SERVICE_PORT: "3306"
       MYSQL_SERVICE_DB_NAME: nacos
       MYSQL_SERVICE_USER: root
-      MYSQL_SERVICE_PASSWORD: root
-      MYSQL_SERVICE_DB_PARAM: "characterEncoding=utf8&connectTimeout=10000&socketTimeout=10000&allowPublicKeyRetrieval=true&useSSL=false"
+      MYSQL_SERVICE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_SERVICE_DB_PARAM: "characterEncoding=utf8&connectTimeout=10000&socketTimeout=10000&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Shanghai"
       NACOS_AUTH_ENABLE: "true"
-      NACOS_AUTH_TOKEN: SecretKey012345678901234567890123456789012345678901234567890123456789
-      NACOS_AUTH_IDENTITY_KEY: lumen
-      NACOS_AUTH_IDENTITY_VALUE: lumen
+      NACOS_AUTH_TOKEN: ${NACOS_AUTH_TOKEN}
+      NACOS_AUTH_IDENTITY_KEY: ${NACOS_AUTH_IDENTITY_KEY}
+      NACOS_AUTH_IDENTITY_VALUE: ${NACOS_AUTH_IDENTITY_VALUE}
     ports:
-      - "8848:8848"
-      - "9848:9848"
+      - "${NACOS_PORT}:8848"
+      - "${NACOS_GRPC_PORT}:9848"
+    volumes:
+      - nacos-data:/home/nacos/data
+      - nacos-logs:/home/nacos/logs
+    healthcheck:
+      # Nacos 2.x doesn't expose Spring Boot /actuator/health by default.
+      # The /nacos/ web console returns 200 once Tomcat is serving the app,
+      # which is the same point at which the API endpoints are ready.
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8848/nacos/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    networks:
+      - lumen-net
+
+  # ---------------------------------------------------------------------------
+  # Lumen services — built from docker/service.Dockerfile via build-images.sh
+  # ---------------------------------------------------------------------------
+  lumen-gateway:
+    <<: *lumen-common
+    image: lumen/lumen-gateway:${LUMEN_IMAGE_TAG}
+    container_name: lumen-gateway
+    depends_on:
+      nacos:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_GATEWAY_PORT}:9200"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9200
+
+  lumen-auth:
+    <<: *lumen-common
+    image: lumen/lumen-auth:${LUMEN_IMAGE_TAG}
+    container_name: lumen-auth
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_AUTH_PORT}:9201"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9201
+
+  lumen-platform:
+    <<: *lumen-common
+    image: lumen/lumen-platform:${LUMEN_IMAGE_TAG}
+    container_name: lumen-platform
+    depends_on:
+      nacos:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_PLATFORM_PORT}:9202"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9202
+
+  lumen-system:
+    <<: *lumen-common
+    image: lumen/lumen-system:${LUMEN_IMAGE_TAG}
+    container_name: lumen-system
+    depends_on:
+      nacos:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_SYSTEM_PORT}:9203"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9203
+
+  lumen-org:
+    <<: *lumen-common
+    image: lumen/lumen-org:${LUMEN_IMAGE_TAG}
+    container_name: lumen-org
+    depends_on:
+      nacos:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_ORG_PORT}:9204"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9204
+
+  lumen-workflow:
+    <<: *lumen-common
+    image: lumen/lumen-workflow:${LUMEN_IMAGE_TAG}
+    container_name: lumen-workflow
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_WORKFLOW_PORT}:9205"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9205
+
+  lumen-file:
+    <<: *lumen-common
+    image: lumen/lumen-file:${LUMEN_IMAGE_TAG}
+    container_name: lumen-file
+    depends_on:
+      nacos:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_FILE_PORT}:9206"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9206
+
+  lumen-message:
+    <<: *lumen-common
+    image: lumen/lumen-message:${LUMEN_IMAGE_TAG}
+    container_name: lumen-message
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_MESSAGE_PORT}:9207"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9207
+
+  lumen-hr:
+    <<: *lumen-common
+    image: lumen/lumen-hr:${LUMEN_IMAGE_TAG}
+    container_name: lumen-hr
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_HR_PORT}:9208"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9208
+
+  lumen-finance:
+    <<: *lumen-common
+    image: lumen/lumen-finance:${LUMEN_IMAGE_TAG}
+    container_name: lumen-finance
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_FINANCE_PORT}:9209"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9209
+
+  lumen-assets:
+    <<: *lumen-common
+    image: lumen/lumen-assets:${LUMEN_IMAGE_TAG}
+    container_name: lumen-assets
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_ASSETS_PORT}:9210"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9210
+
+  lumen-contract:
+    <<: *lumen-common
+    image: lumen/lumen-contract:${LUMEN_IMAGE_TAG}
+    container_name: lumen-contract
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_CONTRACT_PORT}:9211"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9211
+
+  lumen-procurement:
+    <<: *lumen-common
+    image: lumen/lumen-procurement:${LUMEN_IMAGE_TAG}
+    container_name: lumen-procurement
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_PROCUREMENT_PORT}:9212"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9212
+
+  lumen-sales:
+    <<: *lumen-common
+    image: lumen/lumen-sales:${LUMEN_IMAGE_TAG}
+    container_name: lumen-sales
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_SALES_PORT}:9213"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9213
+
+  lumen-payroll:
+    <<: *lumen-common
+    image: lumen/lumen-payroll:${LUMEN_IMAGE_TAG}
+    container_name: lumen-payroll
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_PAYROLL_PORT}:9214"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9214
+
+  lumen-inventory:
+    <<: *lumen-common
+    image: lumen/lumen-inventory:${LUMEN_IMAGE_TAG}
+    container_name: lumen-inventory
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_INVENTORY_PORT}:9215"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9215
+
+  lumen-bi:
+    <<: *lumen-common
+    image: lumen/lumen-bi:${LUMEN_IMAGE_TAG}
+    container_name: lumen-bi
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_BI_PORT}:9216"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9216
+
+  lumen-mobile:
+    <<: *lumen-common
+    image: lumen/lumen-mobile:${LUMEN_IMAGE_TAG}
+    container_name: lumen-mobile
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${LUMEN_MOBILE_PORT}:9217"
+    environment:
+      <<: *lumen-env
+      SERVER_PORT: 9217
+
+  # ---------------------------------------------------------------------------
+  # Portal — nginx reverse-proxy in front of gateway.
+  # Skipped from `up` by default; activate with `--profile portal` once the
+  # Vue 3 build is dropped under docker/portal/dist/ (P6 task).
+  # ---------------------------------------------------------------------------
+  portal:
+    image: nginx:alpine
+    container_name: lumen-portal
+    restart: unless-stopped
+    profiles: ["portal"]
+    depends_on:
+      lumen-gateway:
+        condition: service_started
+    ports:
+      - "${LUMEN_PORTAL_PORT}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./portal/dist:/usr/share/nginx/html:ro
+    networks:
+      - lumen-net
+
+# =============================================================================
+# Volumes — keep DB / Redis / Nacos state across `compose down` cycles.
+# Use `docker compose down -v` to wipe (destructive!).
+# =============================================================================
+volumes:
+  mysql-data:
+    driver: local
+  redis-data:
+    driver: local
+  nacos-data:
+    driver: local
+  nacos-logs:
+    driver: local
+
+networks:
+  lumen-net:
+    driver: bridge
+    name: lumen-net
